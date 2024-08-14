@@ -1,3 +1,6 @@
+use cubipods::Lexer;
+
 fn main() {
-    println!("Hello, world!");
+    let lex = Lexer::new(&[60, 80]);
+    println!("{:?}", lex);
 }
