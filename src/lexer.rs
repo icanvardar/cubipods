@@ -8,7 +8,7 @@ pub struct Lexer<'a> {
     pub ch: char,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum LexerError {
     UnableToCreateLexer,
     HasWhitespace,
@@ -26,22 +26,19 @@ impl Error for LexerError {}
 
 impl<'a> Lexer<'a> {
     pub fn new(bytecode: &'a str) -> Result<Lexer<'a>, LexerError> {
-        let bytecode = bytecode.trim();
-
-        if bytecode.starts_with("0x") {
+        let bytecode = if bytecode.starts_with("0x") {
             match bytecode.strip_prefix("0x") {
-                Some(result) => Ok(Self {
-                    bytecode: result,
-                    ..Default::default()
-                }),
-                None => Err(LexerError::UnableToCreateLexer),
+                Some(result) => result.trim(),
+                None => return Err(LexerError::UnableToCreateLexer),
             }
         } else {
-            Ok(Self {
-                bytecode,
-                ..Default::default()
-            })
-        }
+            bytecode
+        };
+
+        Ok(Self {
+            bytecode,
+            ..Default::default()
+        })
     }
 
     pub fn read_char(&mut self) {
@@ -74,5 +71,109 @@ impl<'a> Lexer<'a> {
 
         self.read_char();
         Ok(format!("{first_nibble}{second_nibble}"))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_trims_bytecode() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x12ffcb";
+        let expected = "12ffcb";
+
+        let lexer = Lexer::new(bytecode)?;
+
+        assert_eq!(lexer.bytecode, expected);
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_reads_char() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x11ffcdaa";
+        let expected_chars: Vec<char> = vec!['1', '1', 'f', 'f', 'c', 'd', 'a', 'a'];
+
+        let mut lexer = Lexer::new(bytecode)?;
+        lexer.read_char();
+
+        for (index, _) in lexer.bytecode.chars().enumerate() {
+            if lexer.ch == '\0' {
+                break;
+            }
+
+            assert_eq!(lexer.ch, expected_chars[index]);
+            lexer.read_char();
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_gets_next_byte() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x608011facddb";
+        let expected_bytes: Vec<&str> = vec!["60", "80", "11", "fa", "cd", "db"];
+
+        let mut lexer = Lexer::new(bytecode)?;
+        lexer.read_char();
+
+        for (index, _) in lexer.bytecode.chars().enumerate() {
+            if lexer.ch == '\0' {
+                break;
+            }
+
+            assert_eq!(lexer.next_byte()?, expected_bytes[index]);
+        }
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytecode_contains_whitespace_returns_lexer_error() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x60 80";
+
+        let mut lexer = Lexer::new(bytecode)?;
+        lexer.read_char();
+        lexer.next_byte()?;
+        let next_byte = lexer.next_byte();
+
+        assert!(matches!(
+            next_byte,
+            Err(e) if e.downcast_ref::<LexerError>() == Some(&LexerError::HasWhitespace)
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytecode_contains_empty_char_returns_lexer_error() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x1";
+
+        let mut lexer = Lexer::new(bytecode)?;
+        let next_byte = lexer.next_byte();
+
+        assert!(matches!(
+            next_byte,
+            Err(e) if e.downcast_ref::<LexerError>() == Some(&LexerError::EmptyChar)
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytecode_contains_non_hex_char_returns_lexer_error() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0xzz";
+
+        let mut lexer = Lexer::new(bytecode)?;
+        lexer.read_char();
+        let next_byte = lexer.next_byte();
+
+        assert!(matches!(
+            next_byte,
+            Err(e) if e.downcast_ref::<LexerError>() == Some(&LexerError::InvalidNibble)
+        ));
+
+        Ok(())
     }
 }
