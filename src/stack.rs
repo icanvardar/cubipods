@@ -1,3 +1,5 @@
+use std::{error::Error, fmt::Display};
+
 const STACK_SIZE_LIMIT: usize = 1024;
 
 pub struct Stack<T> {
@@ -9,9 +11,25 @@ pub enum StackError {
     LimitExceeded,
 }
 
+impl Display for StackError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl Error for StackError {}
+
+impl<T> Default for Stack<T> {
+    fn default() -> Self {
+        Self { stack: Vec::new() }
+    }
+}
+
 impl<T> Stack<T> {
     pub fn new() -> Self {
-        Stack { stack: Vec::new() }
+        Stack {
+            ..Default::default()
+        }
     }
 
     pub fn pop(&mut self) -> Option<T> {
@@ -21,7 +39,10 @@ impl<T> Stack<T> {
     pub fn push(&mut self, item: T) -> Result<(), StackError> {
         match self.validate_stack_size() {
             true => Err(StackError::LimitExceeded),
-            false => Ok(self.stack.push(item)),
+            false => {
+                self.stack.push(item);
+                Ok(())
+            }
         }
     }
 
