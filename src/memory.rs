@@ -2,6 +2,12 @@ pub struct Memory {
     pub heap: Vec<u8>,
 }
 
+impl Default for Memory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Memory {
     pub fn new() -> Self {
         Self { heap: vec![0; 0] }
