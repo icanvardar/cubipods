@@ -1,23 +1,10 @@
-use std::{error::Error, fmt::Display};
+use super::utils::errors::StackError;
 
 const STACK_SIZE_LIMIT: usize = 1024;
 
 pub struct Stack<T> {
     stack: Vec<T>,
 }
-
-#[derive(Debug)]
-pub enum StackError {
-    LimitExceeded,
-}
-
-impl Display for StackError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Error for StackError {}
 
 impl<T> Default for Stack<T> {
     fn default() -> Self {

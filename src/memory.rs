@@ -1,6 +1,11 @@
-#[derive(Default)]
 pub struct Memory {
     pub heap: Vec<u8>,
+}
+
+impl Default for Memory {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Memory {
@@ -12,6 +17,11 @@ impl Memory {
         self.heap.extend(vec![0; size]);
     }
 
+    /// Documentation
+    ///
+    /// # Safety
+    ///
+    /// As Memory::mload, it loads data from given location pointer.
     pub unsafe fn mload(&mut self, location: usize) -> [u8; 32] {
         let extended_location = location + 32;
 
@@ -28,6 +38,11 @@ impl Memory {
         unsafe { *ptr }
     }
 
+    /// Documentation
+    ///
+    /// # Safety
+    ///
+    /// As Memory::mstore, it stores given data to given location pointer.
     pub unsafe fn mstore(&mut self, location: usize, data: [u8; 32]) {
         let extended_location = location + 32;
 
@@ -45,25 +60,10 @@ impl Memory {
     }
 }
 
-pub fn string_to_u8_array(s: &str) -> [u8; 32] {
-    let mut array = [0; 32];
-    let bytes = s.as_bytes();
-
-    for (i, &byte) in bytes.iter().enumerate().take(32) {
-        array[i] = byte;
-    }
-
-    array
-}
-
-pub fn u8_array_to_string(array: &[u8; 32]) -> String {
-    let length = array.iter().position(|&x| x == 0).unwrap_or(32);
-
-    String::from_utf8_lossy(&array[..length]).to_string()
-}
-
 #[cfg(test)]
 mod tests {
+    use crate::utils;
+
     use super::*;
 
     #[test]
@@ -87,7 +87,7 @@ mod tests {
     fn it_stores_and_loads_data_which_is_multiplication_of_32_in_memory() {
         let mut memory = Memory::new();
 
-        let data = string_to_u8_array("ff1122");
+        let data = utils::bytes::to_u8_32(&"ff1122".to_string());
         let mem_location = 0;
 
         let result: [u8; 32];
@@ -104,7 +104,7 @@ mod tests {
     fn it_stores_and_loads_data_which_is_not_multiplication_of_32_in_memory() {
         let mut memory = Memory::new();
 
-        let data = string_to_u8_array("ff1122");
+        let data = utils::bytes::to_u8_32(&"ff1122".to_string());
         let mem_location = 37;
         let mem_upper_limit = 37 + 32;
 
