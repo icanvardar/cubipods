@@ -4,6 +4,7 @@ pub mod memory;
 pub mod stack;
 pub mod storage;
 pub mod utils {
+    pub mod errors;
     pub mod hex;
 }
 

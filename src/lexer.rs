@@ -1,4 +1,5 @@
-use std::{error::Error, fmt::Display};
+use super::utils::errors::LexerError;
+use std::error::Error;
 
 #[derive(Default, Debug)]
 pub struct Lexer<'a> {
@@ -7,22 +8,6 @@ pub struct Lexer<'a> {
     pub read_position: u64,
     pub ch: char,
 }
-
-#[derive(Debug, PartialEq)]
-pub enum LexerError {
-    UnableToCreateLexer,
-    HasWhitespace,
-    EmptyChar,
-    InvalidNibble,
-}
-
-impl Display for LexerError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Error for LexerError {}
 
 impl<'a> Lexer<'a> {
     pub fn new(bytecode: &'a str) -> Result<Lexer<'a>, LexerError> {

@@ -1,4 +1,5 @@
-use std::{error::Error, fmt::Display, str::FromStr};
+use super::utils::errors::InstructionError;
+use std::str::FromStr;
 
 pub struct Instruction<'a> {
     pub r#type: InstructionType,
@@ -28,19 +29,6 @@ pub enum InstructionType {
     KECCAK256 = 0x20,
     ADDRESS = 0x30,
 }
-
-#[derive(Debug)]
-pub enum InstructionError {
-    InvalidInstruction,
-}
-
-impl Display for InstructionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl Error for InstructionError {}
 
 impl FromStr for InstructionType {
     type Err = InstructionError;
