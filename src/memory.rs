@@ -8,7 +8,7 @@ impl Memory {
         Self { heap: vec![0; 0] }
     }
 
-    pub fn extend(&mut self, size: usize) {
+    fn extend(&mut self, size: usize) {
         self.heap.extend(vec![0; size]);
     }
 
@@ -42,5 +42,80 @@ impl Memory {
 
     pub fn msize(&self) -> usize {
         self.heap.len()
+    }
+}
+
+pub fn string_to_u8_array(s: &str) -> [u8; 32] {
+    let mut array = [0; 32];
+    let bytes = s.as_bytes();
+
+    for (i, &byte) in bytes.iter().enumerate().take(32) {
+        array[i] = byte;
+    }
+
+    array
+}
+
+pub fn u8_array_to_string(array: &[u8; 32]) -> String {
+    let length = array.iter().position(|&x| x == 0).unwrap_or(32);
+
+    String::from_utf8_lossy(&array[..length]).to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_creates_memory_heap() {
+        let memory = Memory::new();
+
+        assert_eq!(memory.heap.is_empty(), true);
+    }
+
+    #[test]
+    fn it_extends_memory() {
+        let mut memory = Memory::new();
+
+        memory.extend(32);
+
+        assert_eq!(memory.heap.is_empty(), false);
+        assert_eq!(memory.msize(), 32);
+    }
+
+    #[test]
+    fn it_stores_and_loads_data_which_is_multiplication_of_32_in_memory() {
+        let mut memory = Memory::new();
+
+        let data = string_to_u8_array("ff1122");
+        let mem_location = 0;
+
+        let result: [u8; 32];
+        unsafe {
+            memory.mstore(mem_location, data);
+
+            result = memory.mload(mem_location);
+        }
+
+        assert_eq!(result, data);
+    }
+
+    #[test]
+    fn it_stores_and_loads_data_which_is_not_multiplication_of_32_in_memory() {
+        let mut memory = Memory::new();
+
+        let data = string_to_u8_array("ff1122");
+        let mem_location = 37;
+        let mem_upper_limit = 37 + 32;
+
+        let result: [u8; 32];
+        unsafe {
+            memory.mstore(mem_location, data);
+
+            result = memory.mload(mem_location);
+        }
+
+        assert_eq!(result, data);
+        assert_eq!(memory.msize(), mem_upper_limit);
     }
 }
