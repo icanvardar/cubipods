@@ -1,4 +1,3 @@
-#[derive(Default)]
 pub struct Memory {
     pub heap: Vec<u8>,
 }
@@ -83,6 +82,7 @@ mod tests {
         }
 
         assert_eq!(result, data);
+        update
     }
 
     #[test]
