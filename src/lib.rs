@@ -4,8 +4,8 @@ pub mod memory;
 pub mod stack;
 pub mod storage;
 pub mod utils {
+    pub mod bytes;
     pub mod errors;
-    pub mod hex;
 }
 
 pub use instruction::Instruction;

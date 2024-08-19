@@ -71,7 +71,7 @@ mod tests {
     fn it_stores_and_loads_data_which_is_multiplication_of_32_in_memory() {
         let mut memory = Memory::new();
 
-        let data = utils::hex::to_u8_32(&"ff1122".to_string());
+        let data = utils::bytes::to_u8_32(&"ff1122".to_string());
         let mem_location = 0;
 
         let result: [u8; 32];
@@ -82,14 +82,13 @@ mod tests {
         }
 
         assert_eq!(result, data);
-        update
     }
 
     #[test]
     fn it_stores_and_loads_data_which_is_not_multiplication_of_32_in_memory() {
         let mut memory = Memory::new();
 
-        let data = utils::hex::to_u8_32(&"ff1122".to_string());
+        let data = utils::bytes::to_u8_32(&"ff1122".to_string());
         let mem_location = 37;
         let mem_upper_limit = 37 + 32;
 
