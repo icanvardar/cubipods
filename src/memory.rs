@@ -17,6 +17,11 @@ impl Memory {
         self.heap.extend(vec![0; size]);
     }
 
+    /// Documentation
+    ///
+    /// # Safety
+    ///
+    /// As Memory::mload, it loads data from given location pointer.
     pub unsafe fn mload(&mut self, location: usize) -> [u8; 32] {
         let extended_location = location + 32;
 
@@ -33,6 +38,11 @@ impl Memory {
         unsafe { *ptr }
     }
 
+    /// Documentation
+    ///
+    /// # Safety
+    ///
+    /// As Memory::mstore, it stores given data to given location pointer.
     pub unsafe fn mstore(&mut self, location: usize, data: [u8; 32]) {
         let extended_location = location + 32;
 
