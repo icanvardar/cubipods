@@ -116,3 +116,59 @@ impl To for [u8; 32] {
         array
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_from_bytes_to_u8_array() {
+        let data = b"test" as &[u8];
+
+        let from = to_u8_32(data);
+        let to: String = from_u8_32(from);
+
+        assert_eq!(to.as_bytes(), data);
+    }
+
+    #[test]
+    fn test_from_string_to_u8_array() {
+        let data = "test".to_string();
+
+        let from = to_u8_32(&data);
+        let to: String = from_u8_32(from);
+
+        assert_eq!(to, data);
+    }
+
+    #[test]
+    fn test_from_integer_to_u8_array() {
+        let data = 1;
+
+        let from = to_u8_32(data);
+        let to: u128 = from_u8_32(from);
+
+        assert_eq!(to, data);
+    }
+
+    #[test]
+    fn test_from_array_to_u8_array() {
+        let data_8: [u8; 8] = [1, 2, 3, 4, 5, 6, 7, 8];
+        let from_8 = to_u8_32(data_8);
+        let to_8: [u8; 8] = from_u8_32(from_8);
+        assert_eq!(to_8, data_8);
+
+        let data_16: [u8; 16] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        let from_16 = to_u8_32(data_16);
+        let to_16: [u8; 16] = from_u8_32(from_16);
+        assert_eq!(to_16, data_16);
+
+        let data_32: [u8; 32] = [
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+            25, 26, 27, 28, 29, 30, 31, 32,
+        ];
+        let from_32 = to_u8_32(data_32);
+        let to_32: [u8; 32] = from_u8_32(from_32);
+        assert_eq!(to_32, data_32);
+    }
+}
