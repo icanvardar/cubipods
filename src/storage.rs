@@ -20,3 +20,22 @@ impl Storage {
         self.storage.get(&key)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_creates_storage() {
+        let storage = Storage::new();
+
+        assert_eq!(storage.storage.len(), 0);
+        assert_eq!(storage.storage.is_empty(), true);
+    }
+
+    #[test]
+    fn it_stores_data() {}
+
+    #[test]
+    fn it_loads_data() {}
+}
