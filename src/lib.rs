@@ -3,6 +3,7 @@ pub mod lexer;
 pub mod memory;
 pub mod stack;
 pub mod storage;
+pub mod vm;
 pub mod utils {
     pub mod bytes;
     pub mod errors;
