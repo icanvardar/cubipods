@@ -12,23 +12,55 @@ impl<T> Default for Stack<T> {
     }
 }
 
-impl<T> Stack<T> {
+impl<T: Clone> Stack<T> {
     pub fn new() -> Self {
         Stack {
             ..Default::default()
         }
     }
 
-    pub fn pop(&mut self) -> Option<T> {
-        self.stack.pop()
+    pub fn pop(&mut self) -> Result<Option<T>, StackError> {
+        match self.stack.is_empty() {
+            true => Err(StackError::StackUnderflow),
+            false => Ok(self.stack.pop()),
+        }
     }
 
     pub fn push(&mut self, item: T) -> Result<(), StackError> {
         match self.validate_stack_size() {
-            true => Err(StackError::LimitExceeded),
+            true => Err(StackError::StackOverflow),
             false => {
                 self.stack.push(item);
                 Ok(())
+            }
+        }
+    }
+
+    pub fn dup(&mut self, index: usize) -> Result<T, StackError> {
+        match self.stack.len() <= index {
+            true => Err(StackError::StackSizeExceeded),
+            false => {
+                let value = self.stack[self.stack.len() - 1 - index].clone();
+                self.stack.push(value.clone());
+
+                Ok(value)
+            }
+        }
+    }
+
+    pub fn swap(&mut self, index: usize) -> Result<[T; 2], StackError> {
+        let stack_length = self.stack.len();
+
+        match stack_length <= index {
+            true => Err(StackError::StackSizeExceeded),
+            false => {
+                let value_1 = self.stack[stack_length - 1].clone();
+                let value_2 = self.stack[stack_length - 1 - index].clone();
+
+                self.stack[stack_length - 1] = value_2.clone();
+                self.stack[stack_length - 1 - index] = value_1.clone();
+
+                Ok([value_1, value_2])
             }
         }
     }
@@ -70,7 +102,7 @@ mod tests {
 
         stack.push(input)?;
 
-        stack.pop();
+        stack.pop()?;
 
         assert_eq!(stack.stack.len(), 0);
 
