@@ -1,5 +1,7 @@
 use std::{error::Error, fmt::Display};
 
+use crate::instruction::InstructionType;
+
 #[derive(Debug, PartialEq)]
 pub enum LexerError {
     UnableToCreateLexer,
@@ -70,3 +72,20 @@ impl Display for StackError {
 }
 
 impl Error for StackError {}
+
+#[derive(Debug)]
+pub enum VmError {
+    ArithmeticOperationError(InstructionType),
+}
+
+impl Display for VmError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            VmError::ArithmeticOperationError(instruction_type) => {
+                write!(f, "Cannot call {:?} opcode.", instruction_type)
+            }
+        }
+    }
+}
+
+impl Error for VmError {}
