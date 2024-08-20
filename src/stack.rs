@@ -124,6 +124,44 @@ mod tests {
     }
 
     #[test]
+    fn it_duplicates_an_item() -> Result<(), StackError> {
+        let mut stack: Stack<String> = Stack::new();
+
+        let input_1 = "ff1".to_string();
+        let input_2 = "ff2".to_string();
+        stack.push(input_1.clone())?;
+        stack.push(input_2.clone())?;
+
+        // DUP1 opcode
+        let duplicated_value = stack.dup(0)?;
+
+        assert_eq!(duplicated_value, input_2);
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_swaps_an_item() -> Result<(), StackError> {
+        let mut stack: Stack<String> = Stack::new();
+
+        let input_1 = "ff1".to_string();
+        let input_2 = "ff2".to_string();
+        let input_3 = "ff3".to_string();
+        stack.push(input_1.clone())?;
+        stack.push(input_2.clone())?;
+        stack.push(input_3.clone())?;
+
+        // SWAP3 opcode
+        let [swapped_1, swapped_2] = stack.swap(2)?;
+
+        assert_eq!(swapped_1, input_3);
+        assert_eq!(swapped_2, input_1);
+        assert_eq!(stack.peek(), Some(input_1).as_ref());
+
+        Ok(())
+    }
+
+    #[test]
     fn test_is_empty_function() -> Result<(), StackError> {
         let mut stack: Stack<String> = Stack::new();
 
@@ -172,7 +210,7 @@ mod tests {
     }
 
     #[test]
-    fn test_push_function_with_more_than_stack_size_limit_returns_stack_error(
+    fn test_push_function_with_more_than_stack_size_limit_returns_stack_overflow_error(
     ) -> Result<(), StackError> {
         let mut stack: Stack<String> = Stack::new();
 
@@ -184,7 +222,40 @@ mod tests {
         }
 
         let result = stack.push("ff".to_string());
-        assert!(matches!(result, Err(StackError::LimitExceeded)));
+        assert!(matches!(result, Err(StackError::StackOverflow)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_pop_function_with_empty_stack_returns_stack_underflow_error() -> Result<(), StackError>
+    {
+        let mut stack: Stack<String> = Stack::new();
+
+        let result = stack.pop();
+        assert!(matches!(result, Err(StackError::StackUnderflow)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_dup_function_with_index_of_more_than_size_returns_stack_size_exceeded_error(
+    ) -> Result<(), StackError> {
+        let mut stack: Stack<String> = Stack::new();
+
+        let result = stack.swap(32);
+        assert!(matches!(result, Err(StackError::StackSizeExceeded)));
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_swap_function_with_index_of_more_than_size_returns_stack_size_exceeded_error(
+    ) -> Result<(), StackError> {
+        let mut stack: Stack<String> = Stack::new();
+
+        let result = stack.dup(32);
+        assert!(matches!(result, Err(StackError::StackSizeExceeded)));
 
         Ok(())
     }
