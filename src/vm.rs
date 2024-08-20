@@ -171,12 +171,66 @@ impl<'a> Vm<'a> {
 
                     self.stack.push(result)?;
                 }
-                InstructionType::MSTORE => {}
-                InstructionType::SLOAD => {}
-                InstructionType::SSTORE => {}
-                InstructionType::PUSH(size) => {}
-                InstructionType::DUP(size) => {}
-                InstructionType::SWAP(size) => {}
+                InstructionType::MSTORE => {
+                    let [item_1, item_2] = self.pop_first_two_items(InstructionType::MSTORE)?;
+
+                    unsafe {
+                        self.memory.mstore(item_1 as usize, to_u8_32(item_2));
+                    }
+                }
+                InstructionType::SLOAD => {
+                    let item = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+
+                    let result = self.storage.sload(to_u8_32(item)).unwrap();
+                    let result: String = from_u8_32(*result);
+
+                    self.stack.push(result)?;
+                }
+                InstructionType::SSTORE => {
+                    let [item_1, item_2] = self.pop_first_two_items(InstructionType::SSTORE)?;
+
+                    self.storage.sstore(to_u8_32(item_1), to_u8_32(item_2));
+                }
+                InstructionType::PUSH(size) => {
+                    if size > 32 {
+                        return Err(Box::new(VmError::IncompatibleSize(InstructionType::PUSH(
+                            size,
+                        ))));
+                    }
+
+                    if size == 0 {
+                        self.stack.push("0".to_string())?;
+                        continue 'main;
+                    }
+
+                    let mut counter = 0;
+                    let mut data = "".to_string();
+                    while counter < size {
+                        data += &self.lexer.next_byte()?;
+
+                        counter += 1;
+                    }
+
+                    self.stack.push(data)?;
+                }
+                InstructionType::DUP(size) => {
+                    if size == 0 || size > 16 {
+                        return Err(Box::new(VmError::IncompatibleSize(InstructionType::DUP(
+                            size,
+                        ))));
+                    }
+
+                    self.stack.dup(size as usize)?;
+                }
+                InstructionType::SWAP(size) => {
+                    if size == 0 || size > 16 {
+                        return Err(Box::new(VmError::IncompatibleSize(InstructionType::SWAP(
+                            size,
+                        ))));
+                    }
+
+                    self.stack.swap(size as usize)?;
+                }
             }
         }
 
