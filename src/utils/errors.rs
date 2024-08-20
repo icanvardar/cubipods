@@ -76,6 +76,7 @@ impl Error for StackError {}
 #[derive(Debug)]
 pub enum VmError {
     ArithmeticOperationError(InstructionType),
+    IncompatibleSize(InstructionType),
 }
 
 impl Display for VmError {
@@ -83,6 +84,9 @@ impl Display for VmError {
         match self {
             VmError::ArithmeticOperationError(instruction_type) => {
                 write!(f, "Cannot call {:?} opcode.", instruction_type)
+            }
+            VmError::IncompatibleSize(instruction_type) => {
+                write!(f, "Size exceeds {:?} opcode limit.", instruction_type)
             }
         }
     }
