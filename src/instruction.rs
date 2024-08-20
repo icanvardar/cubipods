@@ -56,7 +56,14 @@ impl FromStr for InstructionType {
             b"1d" => Ok(InstructionType::SAR),
             b"20" => Ok(InstructionType::KECCAK256),
             b"30" => Ok(InstructionType::ADDRESS),
-            _ => Err(InstructionError::InvalidInstruction),
+            _ => {
+                let mut array = [0; 2];
+                let bytes = s.as_bytes();
+                let len = bytes.len().min(2);
+                array[..len].copy_from_slice(&bytes[..len]);
+
+                Err(InstructionError::InvalidInstruction(array))
+            }
         }
     }
 }
