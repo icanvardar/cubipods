@@ -23,6 +23,8 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
+    use crate::utils;
+
     use super::*;
 
     #[test]
@@ -34,8 +36,14 @@ mod tests {
     }
 
     #[test]
-    fn it_stores_data() {}
+    fn it_stores_and_loads_data() {
+        let mut storage = Storage::new();
 
-    #[test]
-    fn it_loads_data() {}
+        let key = utils::bytes::to_u8_32(1);
+        let value = utils::bytes::to_u8_32("hello".as_bytes());
+
+        storage.sstore(key, value);
+
+        assert_eq!(storage.sload(key), Some(value).as_ref());
+    }
 }
