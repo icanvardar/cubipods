@@ -1,6 +1,11 @@
-use cubipods::Lexer;
+use std::error::Error;
 
-fn main() {
-    let lex = Lexer::new(&[60, 80]);
-    println!("{:?}", lex);
+use cubipods::vm::Vm;
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let mut vm = Vm::new("0xffff")?;
+
+    vm.run()?;
+
+    Ok(())
 }
