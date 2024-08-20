@@ -31,7 +31,9 @@ impl Error for InstructionError {}
 
 #[derive(Debug)]
 pub enum StackError {
-    LimitExceeded,
+    StackOverflow,
+    StackUnderflow,
+    StackSizeExceeded,
 }
 
 impl Display for StackError {
