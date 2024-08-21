@@ -498,26 +498,41 @@ mod tests {
 
     #[test]
     fn it_runs_pop_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: it pushes number 1 and number 2 to stack in order,
+        // then it pops an item from top
+        let bytecode = "6001600250";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "01");
+
         Ok(())
     }
 
     #[test]
-    fn it_runs_mload_opcode() -> Result<(), Box<dyn Error>> {
+    fn it_runs_mstore_and_mload_opcodes() -> Result<(), Box<dyn Error>> {
+        // NOTE: pushes 0x20(32) and 0x80(memory location), and saves it on memory
+        let bytecode = "6020608052";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        let data;
+        unsafe {
+            data = vm.memory.mload(u128::from_str_radix("80", 16)? as usize);
+        }
+
+        let data: u128 = from_u8_32(data);
+
+        assert_eq!(vm.stack.is_empty(), true);
+        assert_eq!(data, 32);
+
         Ok(())
     }
 
     #[test]
-    fn it_runs_mstore_opcode() -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
-    #[test]
-    fn it_runs_sload_opcode() -> Result<(), Box<dyn Error>> {
-        Ok(())
-    }
-
-    #[test]
-    fn it_runs_sstore_opcode() -> Result<(), Box<dyn Error>> {
+    fn it_runs_sstore_and_sload_opcodes() -> Result<(), Box<dyn Error>> {
         // NOTE: saves word "hello" in the slot of 1
         let data = "hello"
             .as_bytes()
@@ -533,6 +548,7 @@ mod tests {
         let data = vm.storage.sload(to_u8_32(1)).unwrap();
         let data: String = from_u8_32(data.clone());
 
+        assert_eq!(vm.stack.is_empty(), true);
         assert_eq!(data.as_str(), "hello");
 
         Ok(())
