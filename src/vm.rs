@@ -501,6 +501,23 @@ mod tests {
 
     #[test]
     fn it_runs_sstore_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: saves word "hello" in the slot of 1
+        let data = "hello"
+            .as_bytes()
+            .iter()
+            .map(|x| format!("{:02x}", x))
+            .collect::<String>();
+
+        let bytecode = "64".to_string() + &data + "600155";
+        let mut vm = Vm::new(&bytecode)?;
+
+        vm.run()?;
+
+        let data = vm.storage.sload(to_u8_32(1)).unwrap();
+        let data: String = from_u8_32(data.clone());
+
+        assert_eq!(data.as_str(), "hello");
+
         Ok(())
     }
 
