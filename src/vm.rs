@@ -256,7 +256,6 @@ impl<'a> Vm<'a> {
             return Err(Box::new(VmError::ArithmeticOperationError(instruction)));
         }
 
-        // NOTE: custom errors might be added for data extraction
         let value_1 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
         let value_2 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
 
