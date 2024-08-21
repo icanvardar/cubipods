@@ -1,6 +1,6 @@
-use std::{error::Error, str::FromStr};
+use std::{error::Error, fmt::Write, str::FromStr};
 
-use keccak_hash::keccak256;
+use tiny_keccak::{Hasher, Keccak};
 
 use crate::{
     instruction::InstructionType,
@@ -149,13 +149,30 @@ impl<'a> Vm<'a> {
                     self.stack.push(format!("{:x}", result))?;
                 }
                 InstructionType::KECCAK256 => {
-                    let item = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+                    // TODO: find a way to organize closures/maps
+                    let item = &self.stack.pop()?.unwrap();
 
-                    let mut result = to_u8_32(item);
-                    keccak256(&mut result);
-                    let result: String = from_u8_32(result);
+                    let item = (0..item.len())
+                        .step_by(2)
+                        .map(|i| {
+                            // TODO: find a way to use custom error
+                            u8::from_str_radix(&item[i..i + 2], 16)
+                                .map_err(|e| format!("Invalid hexadecimal character: {}", e))
+                        })
+                        .collect::<Result<Vec<u8>, String>>()?;
 
-                    self.stack.push(result)?;
+                    let mut result = [0u8; 32];
+                    let mut sha3 = Keccak::v256();
+                    sha3.update(&item);
+                    sha3.finalize(&mut result);
+
+                    let mut hex_result = String::with_capacity(result.len() * 2);
+                    for byte in &result {
+                        // TODO: find a way to use custom error
+                        write!(&mut hex_result, "{:02x}", byte).expect("Unable to write to string");
+                    }
+
+                    self.stack.push(hex_result)?;
                 }
                 InstructionType::POP => {
                     self.stack.pop()?;
