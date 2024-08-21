@@ -493,6 +493,26 @@ mod tests {
 
     #[test]
     fn it_runs_keccak256_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: keccaks word "hello"
+        // result must be 1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
+        // and found by using the command `cast keccak hello`
+        let data = "hello"
+            .as_bytes()
+            .iter()
+            .map(|x| format!("{:02x}", x))
+            .collect::<String>();
+
+        let bytecode = "64".to_string() + &data + "20";
+        let mut vm = Vm::new(&bytecode)?;
+
+        vm.run()?;
+
+        assert_eq!(
+            vm.stack.peek().unwrap(),
+            "1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8"
+        );
+        assert_eq!(vm.stack.length(), 1);
+
         Ok(())
     }
 
