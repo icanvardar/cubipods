@@ -488,6 +488,15 @@ mod tests {
 
     #[test]
     fn it_runs_byte_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: pushes 0xff to the stack and extracts its 31st byte which is ff = 255
+        let bytecode = "60ff601f1a";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "ff");
+        assert_eq!(vm.stack.length(), 1);
+
         Ok(())
     }
 
