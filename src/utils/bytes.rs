@@ -86,8 +86,10 @@ impl To for Vec<u8> {
 
 impl To for String {
     fn to(array: [u8; 32]) -> Self {
-        String::from_utf8(array.iter().cloned().take_while(|&x| x != 0).collect())
-            .unwrap_or_default()
+        let non_zero_bytes: Vec<u8> = array.into_iter().filter(|&x| x != 0).collect();
+
+        // NOTE: custom error might be added here
+        String::from_utf8(non_zero_bytes.to_vec()).expect("Invalid UTF-8")
     }
 }
 

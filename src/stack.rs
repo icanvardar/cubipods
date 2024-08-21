@@ -1,7 +1,10 @@
+use std::fmt::Debug;
+
 use super::utils::errors::StackError;
 
 const STACK_SIZE_LIMIT: usize = 1024;
 
+#[derive(Debug)]
 pub struct Stack<T> {
     stack: Vec<T>,
 }

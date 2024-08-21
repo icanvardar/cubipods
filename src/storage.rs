@@ -19,6 +19,14 @@ impl Storage {
     pub fn sload(&self, key: [u8; 32]) -> Option<&[u8; 32]> {
         self.storage.get(&key)
     }
+
+    pub fn size(&self) -> usize {
+        self.storage.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.storage.is_empty()
+    }
 }
 
 #[cfg(test)]
@@ -45,5 +53,23 @@ mod tests {
         storage.sstore(key, value);
 
         assert_eq!(storage.sload(key), Some(value).as_ref());
+    }
+
+    #[test]
+    fn it_returns_storage_size() {
+        let storage = Storage::new();
+
+        let size = storage.size();
+
+        assert_eq!(size, 0);
+    }
+
+    #[test]
+    fn it_checks_storage_emptiness() {
+        let storage = Storage::new();
+
+        let is_empty = storage.is_empty();
+
+        assert_eq!(is_empty, true);
     }
 }
