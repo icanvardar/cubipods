@@ -252,3 +252,296 @@ impl<'a> Vm<'a> {
         Ok([value_1, value_2])
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_creates_vm() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x8060";
+
+        let vm = Vm::new(bytecode)?;
+
+        assert_eq!(vm.stack.is_empty(), true);
+        assert_eq!(vm.lexer.bytecode, bytecode.strip_prefix("0x").unwrap());
+        assert_eq!(vm.memory.msize(), 0);
+        assert_eq!(vm.storage.size(), 0);
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_add_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 10 + 20 = 30 which is 1e in hex
+        let bytecode = "6014600a01";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1e");
+
+        // NOTE: (10 + 20) + 32 = 62 which is 3e in hex
+        let bytecode = "6020600a60140101";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "3e");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_mul_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 10 * 20 = 200 which is c8 in hex
+        let bytecode = "6014600a02";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "c8");
+
+        // NOTE: (10 * 20) * 2 = 400 which is 190 in hex
+        let bytecode = "60026014600a0202";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "190");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_sub_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 20 - 10 = 10 which is a in hex
+        let bytecode = "600a601403";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "a");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_div_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 5 / 2 = rounded as 2 which is 2 in hex
+        let bytecode = "6002600504";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "2");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_mod_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 5 % 2 = 1 which is 1 in hex
+        let bytecode = "6002600506";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_exp_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 5**2 = 25 which is 19 in hex
+        let bytecode = "600260050a";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "19");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_lt_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 5 < 10 = true which is 1 in hex
+        let bytecode = "600a600510";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_gt_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 20 > 10 = true which is 1 in hex
+        let bytecode = "600a601411";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_eq_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 10 == 10 = true which is 1 in hex
+        let bytecode = "600a600a14";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_iszero_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 10 == 0 = false which is 0 in hex
+        let bytecode = "600a15";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "0");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_and_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 1 & 1 = 1 which is 1 in hex
+        let bytecode = "6001600116";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_or_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 1 | 0 = 1 which is 1 in hex
+        let bytecode = "6000600117";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "1");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_xor_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: 1 ^ 1 = 0 which is 0 in hex
+        let bytecode = "6001600118";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "0");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_not_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: !0 = [f; 32] which is ff..ff in hex
+        let bytecode = "600019";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "ffffffffffffffffffffffffffffffff");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_byte_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_keccak256_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_pop_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_mload_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_mstore_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_sload_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_sstore_opcode() -> Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_push_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: pushes 12 1 in the stack
+        let bytecode = "6b010101010101010101010101";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "010101010101010101010101");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_dup_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: duplicates 3rd stack item
+        let bytecode = "6b010101010101010101010101";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "010101010101010101010101");
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_runs_swap_opcode() -> Result<(), Box<dyn Error>> {
+        // NOTE: swaps 3rd item with 1st item in the stack
+        // stack before swap [1, 2, 3]
+        // stack after swap [3, 2, 1]
+        let bytecode = "60016002600391";
+
+        let mut vm = Vm::new(bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "01");
+
+        Ok(())
+    }
+}
