@@ -149,17 +149,12 @@ impl<'a> Vm<'a> {
                     self.stack.push(format!("{:x}", result))?;
                 }
                 InstructionType::KECCAK256 => {
-                    // TODO: find a way to organize closures/maps
                     let item = &self.stack.pop()?.unwrap();
 
                     let item = (0..item.len())
                         .step_by(2)
-                        .map(|i| {
-                            // TODO: find a way to use custom error
-                            u8::from_str_radix(&item[i..i + 2], 16)
-                                .map_err(|e| format!("Invalid hexadecimal character: {}", e))
-                        })
-                        .collect::<Result<Vec<u8>, String>>()?;
+                        .map(|i| u8::from_str_radix(&item[i..i + 2], 16))
+                        .collect::<Result<Vec<u8>, _>>()?;
 
                     let mut result = [0u8; 32];
                     let mut sha3 = Keccak::v256();
@@ -168,8 +163,7 @@ impl<'a> Vm<'a> {
 
                     let mut hex_result = String::with_capacity(result.len() * 2);
                     for byte in &result {
-                        // TODO: find a way to use custom error
-                        write!(&mut hex_result, "{:02x}", byte).expect("Unable to write to string");
+                        write!(&mut hex_result, "{:02x}", byte)?;
                     }
 
                     self.stack.push(hex_result)?;
