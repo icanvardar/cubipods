@@ -4,7 +4,7 @@ use crate::instruction::InstructionType;
 
 use super::{bytes::from_u8_32, errors::HistoryError};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct History {
     registry: Vec<Registry>,
 }
@@ -78,7 +78,7 @@ impl History {
                     format_item_info(info.item_1.unwrap(), info.item_1_index.unwrap())
                 );
 
-                if !info.item_2.is_none() {
+                if info.item_2.is_some() {
                     description = format!(
                         "{} and {}",
                         description,
@@ -93,7 +93,7 @@ impl History {
                 let description = format!(
                     "[MEMORY]: The value {} was pushed to the location of {}.",
                     from_u8_32::<String>(info.value),
-                    info.location.to_string()
+                    info.location
                 );
 
                 self.registry.push(Registry::new(description, component)?);
