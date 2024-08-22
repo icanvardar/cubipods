@@ -93,3 +93,20 @@ impl Display for VmError {
 }
 
 impl Error for VmError {}
+
+#[derive(Debug)]
+pub enum HistoryError {
+    EmptyDescription,
+}
+
+impl Display for HistoryError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            HistoryError::EmptyDescription => {
+                write!(f, "Provided description is empty.")
+            }
+        }
+    }
+}
+
+impl Error for HistoryError {}
