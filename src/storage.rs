@@ -12,12 +12,12 @@ impl Storage {
         }
     }
 
-    pub fn sstore(&mut self, key: [u8; 32], value: [u8; 32]) {
-        self.storage.insert(key, value);
+    pub fn sstore(&mut self, slot: [u8; 32], value: [u8; 32]) {
+        self.storage.insert(slot, value);
     }
 
-    pub fn sload(&self, key: [u8; 32]) -> Option<&[u8; 32]> {
-        self.storage.get(&key)
+    pub fn sload(&self, slot: [u8; 32]) -> Option<&[u8; 32]> {
+        self.storage.get(&slot)
     }
 
     pub fn size(&self) -> usize {
@@ -47,12 +47,12 @@ mod tests {
     fn it_stores_and_loads_data() {
         let mut storage = Storage::new();
 
-        let key = utils::bytes::to_u8_32(1);
+        let slot = utils::bytes::to_u8_32(1);
         let value = utils::bytes::to_u8_32("hello".as_bytes());
 
-        storage.sstore(key, value);
+        storage.sstore(slot, value);
 
-        assert_eq!(storage.sload(key), Some(value).as_ref());
+        assert_eq!(storage.sload(slot), Some(value).as_ref());
     }
 
     #[test]
