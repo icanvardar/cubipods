@@ -75,14 +75,14 @@ impl Error for StackError {}
 
 #[derive(Debug)]
 pub enum VmError {
-    ArithmeticOperationError(InstructionType),
+    ShallowStack(InstructionType),
     IncompatibleSize(InstructionType),
 }
 
 impl Display for VmError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            VmError::ArithmeticOperationError(instruction_type) => {
+            VmError::ShallowStack(instruction_type) => {
                 write!(f, "Cannot call {:?} opcode.", instruction_type)
             }
             VmError::IncompatibleSize(instruction_type) => {

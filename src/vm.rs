@@ -103,7 +103,7 @@ impl<'a> Vm<'a> {
                     self.stack.push(format!("{:x}", result as u128))?;
                 }
                 InstructionType::ISZERO => {
-                    let item = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+                    let item = self.pop_first_item(instruction)?;
 
                     let result = item == 0;
 
@@ -131,14 +131,14 @@ impl<'a> Vm<'a> {
                     self.stack.push(format!("{:x}", result))?;
                 }
                 InstructionType::NOT => {
-                    let item = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+                    let item = self.pop_first_item(instruction)?;
 
                     let result = !item;
 
                     self.stack.push(format!("{:x}", result))?;
                 }
                 InstructionType::BYTE => {
-                    let [item_1, item_2] = self.pop_first_two_items(InstructionType::BYTE)?;
+                    let [item_1, item_2] = self.pop_first_two_items(instruction)?;
 
                     let result = if item_1 < 32 {
                         (item_2 >> (8 * (31 - item_1))) & 0xFF
@@ -149,7 +149,7 @@ impl<'a> Vm<'a> {
                     self.stack.push(format!("{:x}", result))?;
                 }
                 InstructionType::KECCAK256 => {
-                    let item = &self.stack.pop()?.unwrap();
+                    let item = format!("{:X}", self.pop_first_item(instruction)?);
 
                     let item = (0..item.len())
                         .step_by(2)
@@ -169,10 +169,10 @@ impl<'a> Vm<'a> {
                     self.stack.push(hex_result)?;
                 }
                 InstructionType::POP => {
-                    self.stack.pop()?;
+                    self.pop_first_item(instruction)?;
                 }
                 InstructionType::MLOAD => {
-                    let item = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+                    let item = self.pop_first_item(instruction)?;
 
                     let result;
                     unsafe {
@@ -190,7 +190,7 @@ impl<'a> Vm<'a> {
                     }
                 }
                 InstructionType::SLOAD => {
-                    let item = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+                    let item = self.pop_first_item(instruction)?;
 
                     let result = self.storage.sload(to_u8_32(item)).unwrap();
                     let result: String = from_u8_32(*result);
@@ -248,18 +248,28 @@ impl<'a> Vm<'a> {
         Ok(())
     }
 
+    fn pop_first_item(&mut self, instruction: InstructionType) -> Result<u128, Box<dyn Error>> {
+        if self.stack.is_empty() {
+            return Err(Box::new(VmError::ShallowStack(instruction)));
+        }
+
+        let value = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+
+        Ok(value)
+    }
+
     fn pop_first_two_items(
         &mut self,
         instruction: InstructionType,
     ) -> Result<[u128; 2], Box<dyn Error>> {
         if self.stack.length() < 2 {
-            return Err(Box::new(VmError::ArithmeticOperationError(instruction)));
+            return Err(Box::new(VmError::ShallowStack(instruction)));
         }
 
-        let value_1 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
-        let value_2 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+        let item_1 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+        let item_2 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
 
-        Ok([value_1, value_2])
+        Ok([item_1, item_2])
     }
 }
 
