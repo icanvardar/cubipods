@@ -10,6 +10,7 @@ use crate::{
     utils::{
         bytes::{from_u8_32, to_u8_32},
         errors::VmError,
+        history::{Component, History, StackInfo},
     },
     Lexer,
 };
@@ -20,6 +21,7 @@ pub struct Vm<'a> {
     pub lexer: Lexer<'a>,
     pub memory: Memory,
     pub storage: Storage,
+    pub history: History,
 }
 
 impl<'a> Vm<'a> {
@@ -287,6 +289,7 @@ mod tests {
         assert_eq!(vm.lexer.bytecode, bytecode.strip_prefix("0x").unwrap());
         assert_eq!(vm.memory.msize(), 0);
         assert_eq!(vm.storage.size(), 0);
+        assert_eq!(vm.history.size(), 0);
 
         Ok(())
     }
