@@ -112,6 +112,10 @@ impl History {
         Ok(())
     }
 
+    pub fn size(&self) -> usize {
+        self.registry.len()
+    }
+
     pub fn summarize(self) {
         println!(
             "{}",
@@ -120,6 +124,46 @@ impl History {
                 .map(|r| r.description.clone() + "\n")
                 .collect::<String>()
         );
+    }
+}
+
+impl Component {
+    pub fn build_stack(
+        instruction: InstructionType,
+        item_1: [u8; 32],
+        item_1_index: u16,
+        item_2: [u8; 32],
+        item_2_index: u16,
+    ) -> Self {
+        Component::Stack(StackInfo {
+            instruction,
+            item_1: Some(item_1),
+            item_1_index: Some(item_1_index),
+            item_2: Some(item_2),
+            item_2_index: Some(item_2_index),
+        })
+    }
+
+    pub fn build_stack_with_one_item(
+        instruction: InstructionType,
+        item_1: [u8; 32],
+        item_1_index: u16,
+    ) -> Self {
+        Component::Stack(StackInfo {
+            instruction,
+            item_1: Some(item_1),
+            item_1_index: Some(item_1_index),
+            item_2: None,
+            item_2_index: None,
+        })
+    }
+
+    pub fn build_memory(location: usize, value: [u8; 32]) -> Self {
+        Component::Memory(MemoryInfo { location, value })
+    }
+
+    pub fn build_storage(slot: [u8; 32], value: [u8; 32]) -> Self {
+        Component::Storage(StorageInfo { slot, value })
     }
 }
 
