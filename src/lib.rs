@@ -8,6 +8,7 @@ pub mod utils {
     pub mod bytes;
     pub mod cli;
     pub mod errors;
+    pub mod history;
 }
 
 pub use instruction::Instruction;
