@@ -125,10 +125,64 @@ impl History {
 
 #[cfg(test)]
 mod tests {
+    use crate::utils::bytes::to_u8_32;
+
     use super::*;
 
     #[test]
-    fn test_save_on_event() {
+    fn test_save_on_event() -> Result<(), Box<dyn Error>> {
         let mut history = History::new();
+
+        history.save_on_event(Component::Stack(StackInfo {
+            instruction: InstructionType::PUSH(1),
+            item_1: Some(to_u8_32(&"01".to_string())),
+            item_1_index: Some(2),
+            item_2: None,
+            item_2_index: None,
+        }))?;
+        history.save_on_event(Component::Stack(StackInfo {
+            instruction: InstructionType::PUSH(3),
+            item_1: Some(to_u8_32(&"010203".to_string())),
+            item_1_index: Some(1),
+            item_2: None,
+            item_2_index: None,
+        }))?;
+        history.save_on_event(Component::Stack(StackInfo {
+            instruction: InstructionType::MSTORE,
+            item_1: Some(to_u8_32(&"01".to_string())),
+            item_1_index: Some(2),
+            item_2: Some(to_u8_32(&"010203".to_string())),
+            item_2_index: Some(1),
+        }))?;
+        history.save_on_event(Component::Memory(MemoryInfo {
+            location: 1,
+            value: to_u8_32(&"010203".to_string()),
+        }))?;
+        history.save_on_event(Component::Storage(StorageInfo {
+            slot: to_u8_32(&"01".to_string()),
+            value: to_u8_32(&"010203".to_string()),
+        }))?;
+
+        assert_eq!(history.registry.len(), 5);
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_creates_registry_with_empty_description_returns_history_error(
+    ) -> Result<(), Box<dyn Error>> {
+        let result = Registry::new(
+            "".to_string(),
+            Component::Stack(StackInfo {
+                instruction: InstructionType::STOP,
+                item_1: None,
+                item_1_index: None,
+                item_2: None,
+                item_2_index: None,
+            }),
+        );
+        assert!(matches!(result, Err(HistoryError::EmptyDescription)));
+
+        Ok(())
     }
 }
