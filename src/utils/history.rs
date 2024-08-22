@@ -18,10 +18,10 @@ pub struct Registry {
 #[derive(Debug)]
 pub struct StackInfo {
     pub instruction: InstructionType,
-    pub item_1: [u8; 32],
-    pub item_1_index: u16,
-    pub item_2: [u8; 32],
-    pub item_2_index: u16,
+    pub item_1: Option<[u8; 32]>,
+    pub item_1_index: Option<u16>,
+    pub item_2: Option<[u8; 32]>,
+    pub item_2_index: Option<u16>,
 }
 
 #[derive(Debug)]
@@ -75,14 +75,14 @@ impl History {
                 let mut description = format!(
                     "[STACK]: The opcode {:?} was called by using {}",
                     info.instruction,
-                    format_item_info(info.item_1, info.item_1_index)
+                    format_item_info(info.item_1.unwrap(), info.item_1_index.unwrap())
                 );
 
-                if !info.item_2.is_empty() {
+                if !info.item_2.is_none() {
                     description = format!(
                         "{} and {}",
                         description,
-                        format_item_info(info.item_2, info.item_2_index)
+                        format_item_info(info.item_2.unwrap(), info.item_2_index.unwrap())
                     );
                 }
 
@@ -91,7 +91,7 @@ impl History {
             }
             Component::Memory(info) => {
                 let description = format!(
-                    "[MEMORY]: The value {} was pushed to the key {}.",
+                    "[MEMORY]: The value {} was pushed to the location of {}.",
                     from_u8_32::<String>(info.value),
                     info.location.to_string()
                 );
