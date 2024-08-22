@@ -229,4 +229,50 @@ mod tests {
 
         Ok(())
     }
+
+    #[test]
+    fn test_build_stack() {
+        let stack_component =
+            Component::build_stack(InstructionType::ADD, to_u8_32(1), 1, to_u8_32(1), 2);
+
+        if let Component::Stack(stack_info) = stack_component {
+            assert_eq!(stack_info.item_1.is_some(), true);
+            assert_eq!(stack_info.item_1_index.is_some(), true);
+            assert_eq!(stack_info.item_2.is_some(), true);
+            assert_eq!(stack_info.item_2_index.is_some(), true);
+        }
+    }
+
+    #[test]
+    fn test_build_stack_with_one_item() {
+        let stack_component =
+            Component::build_stack_with_one_item(InstructionType::ADD, to_u8_32(1), 1);
+
+        if let Component::Stack(stack_info) = stack_component {
+            assert_eq!(stack_info.item_1.is_some(), true);
+            assert_eq!(stack_info.item_1_index.is_some(), true);
+            assert_eq!(stack_info.item_2.is_some(), false);
+            assert_eq!(stack_info.item_2_index.is_some(), false);
+        }
+    }
+
+    #[test]
+    fn test_build_memory() {
+        let memory_component = Component::build_memory(1, to_u8_32(1));
+
+        if let Component::Memory(memory_info) = memory_component {
+            assert_eq!(memory_info.location, 1);
+            assert_eq!(memory_info.value, to_u8_32(1));
+        }
+    }
+
+    #[test]
+    fn test_build_storage() {
+        let storage_component = Component::build_storage(to_u8_32(1), to_u8_32(1));
+
+        if let Component::Storage(storage_info) = storage_component {
+            assert_eq!(storage_info.slot, to_u8_32(1));
+            assert_eq!(storage_info.value, to_u8_32(1));
+        }
+    }
 }
