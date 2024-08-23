@@ -86,10 +86,10 @@ impl To for Vec<u8> {
 
 impl To for String {
     fn to(array: [u8; 32]) -> Self {
-        let non_zero_bytes: Vec<u8> = array.into_iter().filter(|&x| x != 0).collect();
+        array.iter().map(|byte| format!("{:02x}", byte)).collect()
 
-        // NOTE: custom error might be added here
-        String::from_utf8(non_zero_bytes.to_vec()).expect("Invalid UTF-8")
+        // NOTE: should i trim leading zeroes
+        // result.trim_start_matches('0').to_string()
     }
 }
 
@@ -130,7 +130,10 @@ mod tests {
         let from = to_u8_32(data);
         let to: String = from_u8_32(from);
 
-        assert_eq!(to.as_bytes(), data);
+        assert_eq!(
+            to,
+            "7465737400000000000000000000000000000000000000000000000000000000"
+        );
     }
 
     #[test]
@@ -140,7 +143,10 @@ mod tests {
         let from = to_u8_32(&data);
         let to: String = from_u8_32(from);
 
-        assert_eq!(to, data);
+        assert_eq!(
+            to,
+            "7465737400000000000000000000000000000000000000000000000000000000"
+        );
     }
 
     #[test]
