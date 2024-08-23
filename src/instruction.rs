@@ -6,7 +6,7 @@ pub struct Instruction<'a> {
     pub literal: &'a str,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[repr(u8)]
 pub enum InstructionType {
     STOP = 0x00,
