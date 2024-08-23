@@ -255,9 +255,11 @@ impl<'a> Vm<'a> {
             return Err(Box::new(VmError::ShallowStack(instruction)));
         }
 
-        let value = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+        let (_index, item) = &self.stack.pop()?;
 
-        Ok(value)
+        let item = u128::from_str_radix(item, 16)?;
+
+        Ok(item)
     }
 
     fn pop_first_two_items(
@@ -268,8 +270,11 @@ impl<'a> Vm<'a> {
             return Err(Box::new(VmError::ShallowStack(instruction)));
         }
 
-        let item_1 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
-        let item_2 = u128::from_str_radix(&self.stack.pop()?.unwrap(), 16)?;
+        let (_index_1, item_1) = &self.stack.pop()?;
+        let item_1 = u128::from_str_radix(item_1, 16)?;
+
+        let (_index_2, item_2) = &self.stack.pop()?;
+        let item_2 = u128::from_str_radix(item_2, 16)?;
 
         Ok([item_1, item_2])
     }
