@@ -116,10 +116,11 @@ impl History {
         self.registry.len()
     }
 
-    pub fn summarize(self) {
+    pub fn summarize(&self) {
         println!(
             "{}",
-            self.registry
+            &self
+                .registry
                 .iter()
                 .map(|r| r.description.clone() + "\n")
                 .collect::<String>()
@@ -136,7 +137,7 @@ impl Component {
         item_2_index: u16,
     ) -> Self {
         Component::Stack(StackInfo {
-            instruction,
+            instruction: instruction.clone(),
             item_1: Some(item_1),
             item_1_index: Some(item_1_index),
             item_2: Some(item_2),
