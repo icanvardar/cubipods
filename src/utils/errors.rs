@@ -74,15 +74,15 @@ impl Display for StackError {
 impl Error for StackError {}
 
 #[derive(Debug)]
-pub enum VmError {
-    ArithmeticOperationError(InstructionType),
+pub enum VmError<'a> {
+    ShallowStack(&'a InstructionType),
     IncompatibleSize(InstructionType),
 }
 
-impl Display for VmError {
+impl<'a> Display for VmError<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            VmError::ArithmeticOperationError(instruction_type) => {
+            VmError::ShallowStack(instruction_type) => {
                 write!(f, "Cannot call {:?} opcode.", instruction_type)
             }
             VmError::IncompatibleSize(instruction_type) => {
@@ -92,4 +92,21 @@ impl Display for VmError {
     }
 }
 
-impl Error for VmError {}
+impl<'a> Error for VmError<'a> {}
+
+#[derive(Debug)]
+pub enum HistoryError {
+    EmptyDescription,
+}
+
+impl Display for HistoryError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            HistoryError::EmptyDescription => {
+                write!(f, "Provided description is empty.")
+            }
+        }
+    }
+}
+
+impl Error for HistoryError {}
