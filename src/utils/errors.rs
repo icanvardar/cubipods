@@ -74,12 +74,12 @@ impl Display for StackError {
 impl Error for StackError {}
 
 #[derive(Debug)]
-pub enum VmError {
-    ShallowStack(InstructionType),
+pub enum VmError<'a> {
+    ShallowStack(&'a InstructionType),
     IncompatibleSize(InstructionType),
 }
 
-impl Display for VmError {
+impl<'a> Display for VmError<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             VmError::ShallowStack(instruction_type) => {
@@ -92,7 +92,7 @@ impl Display for VmError {
     }
 }
 
-impl Error for VmError {}
+impl<'a> Error for VmError<'a> {}
 
 #[derive(Debug)]
 pub enum HistoryError {
