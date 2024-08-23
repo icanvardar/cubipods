@@ -18,7 +18,8 @@ pub trait AppBuilder {
     fn get_args(&self) -> &Args;
 
     fn build(&self) -> Result<Vm, Box<dyn Error>> {
-        Vm::new(&self.get_args().bytecode)
+        let args = self.get_args();
+        Vm::new(&args.bytecode, args.verbose)
     }
 }
 
