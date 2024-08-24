@@ -110,3 +110,24 @@ impl Display for HistoryError {
 }
 
 impl Error for HistoryError {}
+
+#[derive(Debug)]
+pub enum Bytes32Error {
+    InvalidStr,
+    U128ConversionFailed,
+}
+
+impl Error for Bytes32Error {}
+
+impl Display for Bytes32Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Bytes32Error::InvalidStr => {
+                write!(f, "Invalid string is provided.")
+            }
+            Bytes32Error::U128ConversionFailed => {
+                write!(f, "The conversion from Bytes32 to u128 is failed.")
+            }
+        }
+    }
+}
