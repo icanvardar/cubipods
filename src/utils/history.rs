@@ -1,12 +1,14 @@
 use std::error::Error;
 
-use crate::instruction::InstructionType;
+use crate::{instruction::InstructionType, vm::Vm};
 
 use super::{bytes32::Bytes32, errors::HistoryError};
 
 #[derive(Debug, Default)]
 pub struct History {
     registry: Vec<Registry>,
+    memory_locations: Vec<Bytes32>,
+    storage_slots: Vec<Bytes32>,
 }
 
 #[derive(Debug)]
@@ -59,7 +61,7 @@ impl Registry {
 impl History {
     pub fn new() -> Self {
         Self {
-            registry: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -67,7 +69,7 @@ impl History {
         match &component {
             Component::Stack(info) => {
                 let format_item_info = |item: Bytes32, index: u16| -> String {
-                    let item = item.to_string();
+                    let item = item.parse_and_trim().unwrap();
 
                     format!("the item {item} with the index of {index}")
                 };
@@ -92,8 +94,7 @@ impl History {
             Component::Memory(info) => {
                 let description = format!(
                     "[MEMORY]: The value {} was pushed to the location of {}.",
-                    info.value.to_string(),
-                    info.location.to_string(),
+                    info.value, info.location,
                 );
 
                 self.registry.push(Registry::new(description, component)?);
@@ -101,8 +102,7 @@ impl History {
             Component::Storage(info) => {
                 let description = format!(
                     "[STORAGE]: The value {} was pushed to the storage slot of {}.",
-                    info.value.to_string(),
-                    info.slot.to_string(),
+                    info.value, info.slot,
                 );
 
                 self.registry.push(Registry::new(description, component)?);
@@ -117,6 +117,7 @@ impl History {
     }
 
     pub fn summarize(&self) {
+        println!("History:");
         println!(
             "{}",
             &self
@@ -125,6 +126,29 @@ impl History {
                 .map(|r| r.description.clone() + "\n")
                 .collect::<String>()
         );
+    }
+
+    pub fn analyze(&self, vm: &Vm) {
+        println!("Stack:");
+        println!("{:?}", vm.stack);
+        println!("\nMemory:");
+        self.memory_locations.iter().for_each(|ml| unsafe {
+            let data = vm.memory.load_only(*ml);
+            println!("Location: 0x{}, Data: 0x{}", ml, data);
+        });
+        println!("\nStorage:");
+        self.storage_slots.iter().for_each(|ss| {
+            let data = vm.storage.sload(*ss).unwrap();
+            println!("Location: 0x{}, Data: 0x{}", ss, data);
+        });
+    }
+
+    pub fn save_memory_location(&mut self, location: Bytes32) {
+        self.memory_locations.push(location);
+    }
+
+    pub fn save_storage_slot(&mut self, slot: Bytes32) {
+        self.storage_slots.push(slot);
     }
 }
 
