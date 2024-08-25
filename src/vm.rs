@@ -62,9 +62,50 @@ impl<'a> Vm<'a> {
 
                         Ok(Box::new(item_1))
                     }
-                    InstructionType::PUSH(_size)
-                    | InstructionType::DUP(_size)
-                    | InstructionType::SWAP(_size) => Ok(Box::new((0, 0))),
+                    InstructionType::PUSH(size)
+                    | InstructionType::DUP(size)
+                    | InstructionType::SWAP(size) => {
+                        if matches!(instruction, InstructionType::PUSH(_)) {
+                            let mut counter = 0;
+                            let mut data = "".to_string();
+                            while counter < size {
+                                data += &self.lexer.next_byte()?;
+
+                                counter += 1;
+                            }
+
+                            let index = self.stack.push(data.clone())?;
+
+                            self.history
+                                .save_on_event(Component::build_stack_with_one_item(
+                                    instruction.clone(),
+                                    data.parse::<Bytes32>()?,
+                                    index as u16,
+                                ))?;
+                        } else if matches!(instruction, InstructionType::DUP(_)) {
+                            let (index, item) = self.stack.dup(size as usize)?;
+
+                            self.history
+                                .save_on_event(Component::build_stack_with_one_item(
+                                    instruction.clone(),
+                                    item.parse::<Bytes32>()?,
+                                    index as u16,
+                                ))?;
+                        } else {
+                            let ([index_1, index_2], [item_1, item_2]) =
+                                self.stack.swap(size as usize)?;
+
+                            self.history.save_on_event(Component::build_stack(
+                                instruction.clone(),
+                                item_1.parse::<Bytes32>()?,
+                                index_1 as u16,
+                                item_2.parse::<Bytes32>()?,
+                                index_2 as u16,
+                            ))?;
+                        }
+
+                        return Ok(Box::new(0));
+                    }
                     _ => {
                         let ([index_1, index_2], [item_1, item_2]) =
                             self.pop_first_two_items(instruction.clone())?;
@@ -274,15 +315,7 @@ impl<'a> Vm<'a> {
                         continue 'main;
                     }
 
-                    let mut counter = 0;
-                    let mut data = "".to_string();
-                    while counter < size {
-                        data += &self.lexer.next_byte()?;
-
-                        counter += 1;
-                    }
-
-                    self.stack.push(data)?;
+                    build_initials()?;
                 }
                 InstructionType::DUP(size) => {
                     if size == 0 || size > 16 {
@@ -291,7 +324,7 @@ impl<'a> Vm<'a> {
                         ))));
                     }
 
-                    self.stack.dup(size as usize)?;
+                    build_initials()?;
                 }
                 InstructionType::SWAP(size) => {
                     if size == 0 || size > 16 {
@@ -300,13 +333,14 @@ impl<'a> Vm<'a> {
                         ))));
                     }
 
-                    self.stack.swap(size as usize)?;
+                    build_initials()?;
                 }
             }
         }
 
         if self.verbose {
             self.history.summarize();
+            self.history.analyze();
         }
 
         Ok(())
