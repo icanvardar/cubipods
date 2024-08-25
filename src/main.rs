@@ -10,5 +10,10 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     vm.run()?;
 
+    if vm.verbose {
+        vm.history.summarize();
+        vm.history.analyze(&vm);
+    }
+
     Ok(())
 }
