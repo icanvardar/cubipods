@@ -94,8 +94,7 @@ impl History {
             Component::Memory(info) => {
                 let description = format!(
                     "[MEMORY]: The value {} was pushed to the location of {}.",
-                    info.value.to_string(),
-                    info.location.to_string(),
+                    info.value, info.location,
                 );
 
                 self.registry.push(Registry::new(description, component)?);
@@ -103,8 +102,7 @@ impl History {
             Component::Storage(info) => {
                 let description = format!(
                     "[STORAGE]: The value {} was pushed to the storage slot of {}.",
-                    info.value.to_string(),
-                    info.slot.to_string(),
+                    info.value, info.slot,
                 );
 
                 self.registry.push(Registry::new(description, component)?);
@@ -136,20 +134,12 @@ impl History {
         println!("\nMemory:");
         self.memory_locations.iter().for_each(|ml| unsafe {
             let data = vm.memory.load_only(*ml);
-            println!(
-                "Location: 0x{}, Data: 0x{}",
-                ml.to_string(),
-                data.to_string()
-            );
+            println!("Location: 0x{}, Data: 0x{}", ml, data);
         });
         println!("\nStorage:");
         self.storage_slots.iter().for_each(|ss| {
             let data = vm.storage.sload(*ss).unwrap();
-            println!(
-                "Location: 0x{}, Data: 0x{}",
-                ss.to_string(),
-                data.to_string()
-            );
+            println!("Location: 0x{}, Data: 0x{}", ss, data);
         });
     }
 
