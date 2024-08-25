@@ -367,6 +367,18 @@ mod tests {
     }
 
     #[test]
+    fn it_runs_stop_opcode() -> Result<(), Box<dyn Error>> {
+        let bytecode = "0x600100";
+
+        let mut vm = create_vm(&bytecode)?;
+        vm.run()?;
+
+        assert_eq!(vm.stack.peek().unwrap(), "01");
+
+        Ok(())
+    }
+
+    #[test]
     fn it_runs_add_opcode() -> Result<(), Box<dyn Error>> {
         // NOTE: 10 + 20 = 30 which is 1e in hex
         let bytecode = "6014600a01";
