@@ -59,6 +59,11 @@ impl Memory {
         *ptr = data.0;
     }
 
+    /// Documentation
+    ///
+    /// # Safety
+    ///
+    /// As Memory::load_only, it loads data from given location pointer.
     pub unsafe fn load_only(&self, location: Bytes32) -> Bytes32 {
         let location: usize = location.try_into().unwrap();
 
