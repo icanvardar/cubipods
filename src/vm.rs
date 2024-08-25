@@ -342,11 +342,6 @@ impl<'a> Vm<'a> {
             }
         }
 
-        if self.verbose {
-            self.history.summarize();
-            self.history.analyze();
-        }
-
         Ok(())
     }
 
