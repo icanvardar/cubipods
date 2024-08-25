@@ -1,4 +1,4 @@
-name: Cubipods
+name: Cubipods CI
 
 on:
   workflow_dispatch:
@@ -6,6 +6,7 @@ on:
   push:
     branches:
       - "main"
+      - "issue-*"
 
 jobs:
   check:
@@ -47,4 +48,5 @@ jobs:
       - uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8
         with:
           toolchain: stable
-          components: clippy - run: cargo clippy -- -D warnings
+          components: clippy
+      - run: cargo clippy -- -D warnings
