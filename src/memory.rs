@@ -59,6 +59,14 @@ impl Memory {
         *ptr = data.0;
     }
 
+    pub unsafe fn load_only(&self, location: Bytes32) -> Bytes32 {
+        let location: usize = location.try_into().unwrap();
+
+        let ptr = self.heap.as_ptr().add(location) as *const Bytes32;
+
+        unsafe { *ptr }
+    }
+
     pub fn msize(&self) -> usize {
         self.heap.len()
     }

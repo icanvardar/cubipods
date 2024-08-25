@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use crate::instruction::InstructionType;
+use crate::{instruction::InstructionType, vm::Vm};
 
 use super::{bytes32::Bytes32, errors::HistoryError};
 
@@ -119,6 +119,7 @@ impl History {
     }
 
     pub fn summarize(&self) {
+        println!("History:");
         println!(
             "{}",
             &self
@@ -129,6 +130,28 @@ impl History {
         );
     }
 
+    pub fn analyze(&self, vm: &Vm) {
+        println!("Stack:");
+        println!("{:?}", vm.stack);
+        println!("\nMemory:");
+        self.memory_locations.iter().for_each(|ml| unsafe {
+            let data = vm.memory.load_only(*ml);
+            println!(
+                "Location: 0x{}, Data: 0x{}",
+                ml.to_string(),
+                data.to_string()
+            );
+        });
+        println!("\nStorage:");
+        self.storage_slots.iter().for_each(|ss| {
+            let data = vm.storage.sload(*ss).unwrap();
+            println!(
+                "Location: 0x{}, Data: 0x{}",
+                ss.to_string(),
+                data.to_string()
+            );
+        });
+    }
 
     pub fn save_memory_location(&mut self, location: Bytes32) {
         self.memory_locations.push(location);
