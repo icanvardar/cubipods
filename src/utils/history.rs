@@ -7,6 +7,8 @@ use super::{bytes32::Bytes32, errors::HistoryError};
 #[derive(Debug, Default)]
 pub struct History {
     registry: Vec<Registry>,
+    memory_locations: Vec<Bytes32>,
+    storage_slots: Vec<Bytes32>,
 }
 
 #[derive(Debug)]
@@ -59,7 +61,7 @@ impl Registry {
 impl History {
     pub fn new() -> Self {
         Self {
-            registry: Vec::new(),
+            ..Default::default()
         }
     }
 
@@ -127,7 +129,14 @@ impl History {
         );
     }
 
-    pub fn analyze(&self) {}
+
+    pub fn save_memory_location(&mut self, location: Bytes32) {
+        self.memory_locations.push(location);
+    }
+
+    pub fn save_storage_slot(&mut self, slot: Bytes32) {
+        self.storage_slots.push(slot);
+    }
 }
 
 impl Component {

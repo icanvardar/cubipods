@@ -120,12 +120,16 @@ impl<'a> Vm<'a> {
                             ))?;
 
                             match instruction {
-                                InstructionType::MSTORE => self
-                                    .history
-                                    .save_on_event(Component::build_memory(item_1, item_2))?,
-                                InstructionType::SSTORE => self
-                                    .history
-                                    .save_on_event(Component::build_storage(item_1, item_2))?,
+                                InstructionType::MSTORE => {
+                                    self.history.save_memory_location(item_1);
+                                    self.history
+                                        .save_on_event(Component::build_memory(item_1, item_2))?
+                                }
+                                InstructionType::SSTORE => {
+                                    self.history.save_storage_slot(item_1);
+                                    self.history
+                                        .save_on_event(Component::build_storage(item_1, item_2))?
+                                }
                                 _ => {}
                             }
                         }
