@@ -1,5 +1,6 @@
 use std::{
     error::Error,
+    fmt::Display,
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Not, Rem, Shr, Sub},
     str::FromStr,
 };
@@ -19,8 +20,8 @@ impl Bytes32 {
 
     pub fn parse_and_trim(self) -> Result<String, Box<dyn Error>> {
         let result: String = self.try_into()?;
-        let result = result.trim_start_matches("0").to_string();
-        let result = if result.len() == 0 {
+        let result = result.trim_start_matches('0').to_string();
+        let result = if result.is_empty() {
             "0".to_string()
         } else {
             result
@@ -41,9 +42,9 @@ impl FromStr for Bytes32 {
     }
 }
 
-impl ToString for Bytes32 {
-    fn to_string(&self) -> String {
-        hex::encode(&self.0)
+impl Display for Bytes32 {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", hex::encode(self.0))
     }
 }
 
@@ -51,7 +52,7 @@ impl TryInto<String> for Bytes32 {
     type Error = Bytes32Error;
 
     fn try_into(self) -> Result<String, Self::Error> {
-        Ok(hex::encode(&self.0))
+        Ok(hex::encode(self.0))
     }
 }
 
@@ -190,10 +191,10 @@ impl Rem for Bytes32 {
 
 impl PartialOrd for Bytes32 {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        let a: u128 = self.clone().try_into().unwrap();
-        let b: u128 = other.clone().try_into().unwrap();
+        let left: u128 = (*self).try_into().unwrap();
+        let right: u128 = (*other).try_into().unwrap();
 
-        a.partial_cmp(&b)
+        left.partial_cmp(&right)
     }
 }
 
@@ -201,8 +202,8 @@ impl BitAnd for Bytes32 {
     type Output = Bytes32;
 
     fn bitand(self, rhs: Self) -> Self::Output {
-        let a: u128 = self.clone().try_into().unwrap();
-        let b: u128 = rhs.clone().try_into().unwrap();
+        let a: u128 = self.try_into().unwrap();
+        let b: u128 = rhs.try_into().unwrap();
 
         Bytes32::from(a & b)
     }
@@ -212,10 +213,10 @@ impl BitOr for Bytes32 {
     type Output = Bytes32;
 
     fn bitor(self, rhs: Self) -> Self::Output {
-        let a: u128 = self.clone().try_into().unwrap();
-        let b: u128 = rhs.clone().try_into().unwrap();
+        let a: u128 = self.try_into().unwrap();
+        let b: u128 = rhs.try_into().unwrap();
 
-        Bytes32::from(a ^ b)
+        Bytes32::from(a | b)
     }
 }
 
@@ -223,8 +224,8 @@ impl BitXor for Bytes32 {
     type Output = Bytes32;
 
     fn bitxor(self, rhs: Self) -> Self::Output {
-        let a: u128 = self.clone().try_into().unwrap();
-        let b: u128 = rhs.clone().try_into().unwrap();
+        let a: u128 = self.try_into().unwrap();
+        let b: u128 = rhs.try_into().unwrap();
 
         Bytes32::from(a ^ b)
     }
@@ -234,7 +235,7 @@ impl Not for Bytes32 {
     type Output = Bytes32;
 
     fn not(self) -> Self::Output {
-        let a: bool = self.clone().try_into().unwrap();
+        let a: bool = self.try_into().unwrap();
 
         Bytes32::from(!a)
     }
