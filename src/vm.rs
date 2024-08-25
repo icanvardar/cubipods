@@ -104,7 +104,7 @@ impl<'a> Vm<'a> {
                             ))?;
                         }
 
-                        return Ok(Box::new(0));
+                        Ok(Box::new(0))
                     }
                     _ => {
                         let ([index_1, index_2], [item_1, item_2]) =
