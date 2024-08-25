@@ -67,7 +67,7 @@ impl History {
         match &component {
             Component::Stack(info) => {
                 let format_item_info = |item: Bytes32, index: u16| -> String {
-                    let item = item.to_string();
+                    let item = item.parse_and_trim().unwrap();
 
                     format!("the item {item} with the index of {index}")
                 };
@@ -126,6 +126,8 @@ impl History {
                 .collect::<String>()
         );
     }
+
+    pub fn analyze(&self) {}
 }
 
 impl Component {
