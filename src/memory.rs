@@ -1,3 +1,5 @@
+use crate::utils::bytes32::Bytes32;
+
 pub struct Memory {
     pub heap: Vec<u8>,
 }
@@ -22,7 +24,8 @@ impl Memory {
     /// # Safety
     ///
     /// As Memory::mload, it loads data from given location pointer.
-    pub unsafe fn mload(&mut self, location: usize) -> [u8; 32] {
+    pub unsafe fn mload(&mut self, location: Bytes32) -> Bytes32 {
+        let location: usize = location.try_into().unwrap();
         let extended_location = location + 32;
 
         if extended_location > self.heap.len() {
@@ -33,7 +36,7 @@ impl Memory {
             };
         }
 
-        let ptr = self.heap.as_ptr().add(location) as *const [u8; 32];
+        let ptr = self.heap.as_ptr().add(location) as *const Bytes32;
 
         unsafe { *ptr }
     }
@@ -43,7 +46,8 @@ impl Memory {
     /// # Safety
     ///
     /// As Memory::mstore, it stores given data to given location pointer.
-    pub unsafe fn mstore(&mut self, location: usize, data: [u8; 32]) {
+    pub unsafe fn mstore(&mut self, location: Bytes32, data: Bytes32) {
+        let location: usize = location.try_into().unwrap();
         let extended_location = location + 32;
 
         if extended_location > self.heap.len() {
@@ -52,7 +56,7 @@ impl Memory {
 
         let ptr = self.heap.as_mut_ptr().add(location) as *mut [u8; 32];
 
-        *ptr = data;
+        *ptr = data.0;
     }
 
     pub fn msize(&self) -> usize {
@@ -62,8 +66,6 @@ impl Memory {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils;
-
     use super::*;
 
     #[test]
@@ -87,10 +89,10 @@ mod tests {
     fn it_stores_and_loads_data_which_is_multiplication_of_32_in_memory() {
         let mut memory = Memory::new();
 
-        let data = utils::bytes::to_u8_32(&"ff1122".to_string());
-        let mem_location = 0;
+        let data = "ff1122".parse::<Bytes32>().unwrap();
+        let mem_location = Bytes32::from(0);
 
-        let result: [u8; 32];
+        let result: Bytes32;
         unsafe {
             memory.mstore(mem_location, data);
 
@@ -104,11 +106,11 @@ mod tests {
     fn it_stores_and_loads_data_which_is_not_multiplication_of_32_in_memory() {
         let mut memory = Memory::new();
 
-        let data = utils::bytes::to_u8_32(&"ff1122".to_string());
-        let mem_location = 37;
+        let data = "ff1122".parse::<Bytes32>().unwrap();
+        let mem_location = Bytes32::from(37);
         let mem_upper_limit = 37 + 32;
 
-        let result: [u8; 32];
+        let result: Bytes32;
         unsafe {
             memory.mstore(mem_location, data);
 

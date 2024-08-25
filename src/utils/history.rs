@@ -2,7 +2,7 @@ use std::error::Error;
 
 use crate::instruction::InstructionType;
 
-use super::{bytes::from_u8_32, errors::HistoryError};
+use super::{bytes32::Bytes32, errors::HistoryError};
 
 #[derive(Debug, Default)]
 pub struct History {
@@ -18,22 +18,22 @@ pub struct Registry {
 #[derive(Debug)]
 pub struct StackInfo {
     pub instruction: InstructionType,
-    pub item_1: Option<[u8; 32]>,
+    pub item_1: Option<Bytes32>,
     pub item_1_index: Option<u16>,
-    pub item_2: Option<[u8; 32]>,
+    pub item_2: Option<Bytes32>,
     pub item_2_index: Option<u16>,
 }
 
 #[derive(Debug)]
 pub struct MemoryInfo {
-    pub location: usize,
-    pub value: [u8; 32],
+    pub location: Bytes32,
+    pub value: Bytes32,
 }
 
 #[derive(Debug)]
 pub struct StorageInfo {
-    pub slot: [u8; 32],
-    pub value: [u8; 32],
+    pub slot: Bytes32,
+    pub value: Bytes32,
 }
 
 #[derive(Debug)]
@@ -66,8 +66,8 @@ impl History {
     pub fn save_on_event(&mut self, component: Component) -> Result<(), Box<dyn Error>> {
         match &component {
             Component::Stack(info) => {
-                let format_item_info = |item: [u8; 32], index: u16| -> String {
-                    let item: String = from_u8_32(item);
+                let format_item_info = |item: Bytes32, index: u16| -> String {
+                    let item = item.to_string();
 
                     format!("the item {item} with the index of {index}")
                 };
@@ -92,8 +92,8 @@ impl History {
             Component::Memory(info) => {
                 let description = format!(
                     "[MEMORY]: The value {} was pushed to the location of {}.",
-                    from_u8_32::<String>(info.value),
-                    info.location
+                    info.value.to_string(),
+                    info.location.to_string(),
                 );
 
                 self.registry.push(Registry::new(description, component)?);
@@ -101,8 +101,8 @@ impl History {
             Component::Storage(info) => {
                 let description = format!(
                     "[STORAGE]: The value {} was pushed to the storage slot of {}.",
-                    from_u8_32::<String>(info.value),
-                    from_u8_32::<String>(info.slot),
+                    info.value.to_string(),
+                    info.slot.to_string(),
                 );
 
                 self.registry.push(Registry::new(description, component)?);
@@ -131,9 +131,9 @@ impl History {
 impl Component {
     pub fn build_stack(
         instruction: InstructionType,
-        item_1: [u8; 32],
+        item_1: Bytes32,
         item_1_index: u16,
-        item_2: [u8; 32],
+        item_2: Bytes32,
         item_2_index: u16,
     ) -> Self {
         Component::Stack(StackInfo {
@@ -147,7 +147,7 @@ impl Component {
 
     pub fn build_stack_with_one_item(
         instruction: InstructionType,
-        item_1: [u8; 32],
+        item_1: Bytes32,
         item_1_index: u16,
     ) -> Self {
         Component::Stack(StackInfo {
@@ -159,19 +159,17 @@ impl Component {
         })
     }
 
-    pub fn build_memory(location: usize, value: [u8; 32]) -> Self {
+    pub fn build_memory(location: Bytes32, value: Bytes32) -> Self {
         Component::Memory(MemoryInfo { location, value })
     }
 
-    pub fn build_storage(slot: [u8; 32], value: [u8; 32]) -> Self {
+    pub fn build_storage(slot: Bytes32, value: Bytes32) -> Self {
         Component::Storage(StorageInfo { slot, value })
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::utils::bytes::to_u8_32;
-
     use super::*;
 
     #[test]
@@ -180,32 +178,32 @@ mod tests {
 
         history.save_on_event(Component::Stack(StackInfo {
             instruction: InstructionType::PUSH(1),
-            item_1: Some(to_u8_32(&"01".to_string())),
+            item_1: Some("01".parse::<Bytes32>()?),
             item_1_index: Some(2),
             item_2: None,
             item_2_index: None,
         }))?;
         history.save_on_event(Component::Stack(StackInfo {
             instruction: InstructionType::PUSH(3),
-            item_1: Some(to_u8_32(&"010203".to_string())),
+            item_1: Some("010203".parse::<Bytes32>()?),
             item_1_index: Some(1),
             item_2: None,
             item_2_index: None,
         }))?;
         history.save_on_event(Component::Stack(StackInfo {
             instruction: InstructionType::MSTORE,
-            item_1: Some(to_u8_32(&"01".to_string())),
+            item_1: Some("01".parse::<Bytes32>()?),
             item_1_index: Some(2),
-            item_2: Some(to_u8_32(&"010203".to_string())),
+            item_2: Some("010203".parse::<Bytes32>()?),
             item_2_index: Some(1),
         }))?;
         history.save_on_event(Component::Memory(MemoryInfo {
-            location: 1,
-            value: to_u8_32(&"010203".to_string()),
+            location: Bytes32::from(1),
+            value: "010203".parse::<Bytes32>()?,
         }))?;
         history.save_on_event(Component::Storage(StorageInfo {
-            slot: to_u8_32(&"01".to_string()),
-            value: to_u8_32(&"010203".to_string()),
+            slot: "01".parse::<Bytes32>()?,
+            value: "010203".parse::<Bytes32>()?,
         }))?;
 
         assert_eq!(history.registry.len(), 5);
@@ -233,8 +231,13 @@ mod tests {
 
     #[test]
     fn test_build_stack() {
-        let stack_component =
-            Component::build_stack(InstructionType::ADD, to_u8_32(1), 1, to_u8_32(1), 2);
+        let stack_component = Component::build_stack(
+            InstructionType::ADD,
+            Bytes32::from(1),
+            1,
+            Bytes32::from(1),
+            2,
+        );
 
         if let Component::Stack(stack_info) = stack_component {
             assert_eq!(stack_info.item_1.is_some(), true);
@@ -247,7 +250,7 @@ mod tests {
     #[test]
     fn test_build_stack_with_one_item() {
         let stack_component =
-            Component::build_stack_with_one_item(InstructionType::ADD, to_u8_32(1), 1);
+            Component::build_stack_with_one_item(InstructionType::ADD, Bytes32::from(1), 1);
 
         if let Component::Stack(stack_info) = stack_component {
             assert_eq!(stack_info.item_1.is_some(), true);
@@ -259,21 +262,21 @@ mod tests {
 
     #[test]
     fn test_build_memory() {
-        let memory_component = Component::build_memory(1, to_u8_32(1));
+        let memory_component = Component::build_memory(Bytes32::from(1), Bytes32::from(1));
 
         if let Component::Memory(memory_info) = memory_component {
-            assert_eq!(memory_info.location, 1);
-            assert_eq!(memory_info.value, to_u8_32(1));
+            assert_eq!(memory_info.location, Bytes32::from(1));
+            assert_eq!(memory_info.value, Bytes32::from(1));
         }
     }
 
     #[test]
     fn test_build_storage() {
-        let storage_component = Component::build_storage(to_u8_32(1), to_u8_32(1));
+        let storage_component = Component::build_storage(Bytes32::from(1), Bytes32::from(1));
 
         if let Component::Storage(storage_info) = storage_component {
-            assert_eq!(storage_info.slot, to_u8_32(1));
-            assert_eq!(storage_info.value, to_u8_32(1));
+            assert_eq!(storage_info.slot, Bytes32::from(1));
+            assert_eq!(storage_info.value, Bytes32::from(1));
         }
     }
 }

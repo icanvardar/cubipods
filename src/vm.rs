@@ -8,7 +8,7 @@ use crate::{
     stack::Stack,
     storage::Storage,
     utils::{
-        bytes::{from_u8_32, to_u8_32},
+        bytes32::{Bytes32, Pow},
         errors::VmError,
         history::{Component, History},
     },
@@ -55,7 +55,7 @@ impl<'a> Vm<'a> {
                             self.history
                                 .save_on_event(Component::build_stack_with_one_item(
                                     instruction.clone(),
-                                    to_u8_32(item_1),
+                                    item_1,
                                     index_1 as u16,
                                 ))?;
                         }
@@ -72,19 +72,19 @@ impl<'a> Vm<'a> {
                         if self.verbose {
                             self.history.save_on_event(Component::build_stack(
                                 instruction.clone(),
-                                to_u8_32(item_1),
+                                item_1,
                                 index_1 as u16,
-                                to_u8_32(item_2),
+                                item_2,
                                 index_2 as u16,
                             ))?;
 
                             match instruction {
-                                InstructionType::MSTORE => self.history.save_on_event(
-                                    Component::build_memory(item_1 as usize, to_u8_32(item_2)),
-                                )?,
-                                InstructionType::SSTORE => self.history.save_on_event(
-                                    Component::build_storage(to_u8_32(item_1), to_u8_32(item_2)),
-                                )?,
+                                InstructionType::MSTORE => self
+                                    .history
+                                    .save_on_event(Component::build_memory(item_1, item_2))?,
+                                InstructionType::SSTORE => self
+                                    .history
+                                    .save_on_event(Component::build_storage(item_1, item_2))?,
                                 _ => {}
                             }
                         }
@@ -97,114 +97,129 @@ impl<'a> Vm<'a> {
             match instruction {
                 InstructionType::STOP => break 'main,
                 InstructionType::ADD => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 + item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::MUL => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 * item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::SUB => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 - item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::DIV => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 / item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::MOD => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 % item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::EXP => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
-                    let result = u128::pow(item_1, item_2 as u32);
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
+                    let result = item_1.pow(item_2);
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::LT => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 < item_2;
 
                     self.stack.push(format!("{:x}", result as u128))?;
                 }
                 InstructionType::GT => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 > item_2;
 
                     self.stack.push(format!("{:x}", result as u128))?;
                 }
                 InstructionType::EQ => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 == item_2;
 
                     self.stack.push(format!("{:x}", result as u128))?;
                 }
                 InstructionType::ISZERO => {
-                    let item_1 = *build_initials()?.downcast::<u128>().unwrap();
-                    let result = item_1 == 0;
+                    let item_1 = *build_initials()?.downcast::<Bytes32>().unwrap();
+                    let result = item_1 == Bytes32::from(0);
 
                     self.stack.push(format!("{:x}", result as u128))?;
                 }
                 InstructionType::AND => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 & item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::OR => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 | item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::XOR => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
                     let result = item_1 ^ item_2;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::NOT => {
-                    let item_1 = *build_initials()?.downcast::<u128>().unwrap();
+                    let item_1 = *build_initials()?.downcast::<Bytes32>().unwrap();
                     let result = !item_1;
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::BYTE => {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
 
-                    let result = if item_1 < 32 {
-                        (item_2 >> (8 * (31 - item_1))) & 0xFF
+                    let result = if item_1 < Bytes32::from(32) {
+                        (item_2 >> (Bytes32::from(8) * (Bytes32::from(31) - item_1)))
+                            & Bytes32::from(0xFF)
                     } else {
-                        0
+                        Bytes32::from(0)
                     };
 
-                    self.stack.push(format!("{:x}", result))?;
+                    self.stack.push(result.parse_and_trim()?)?;
                 }
                 InstructionType::KECCAK256 => {
-                    let item_1 = *build_initials()?.downcast::<u128>().unwrap();
+                    let item_1 = *build_initials()?.downcast::<Bytes32>().unwrap();
 
-                    let item = format!("{:X}", item_1);
-
-                    let item = (0..item.len())
-                        .step_by(2)
-                        .map(|i| u8::from_str_radix(&item[i..i + 2], 16))
-                        .collect::<Result<Vec<u8>, _>>()?;
+                    // NOTE: need to trim leading zeroes for keccak operation
+                    let mut data: Vec<u8> = vec![];
+                    for &byte in item_1.0.iter() {
+                        if byte != 0 || !data.is_empty() {
+                            data.push(byte);
+                        }
+                    }
 
                     let mut result = [0u8; 32];
-                    let mut sha3 = Keccak::v256();
-                    sha3.update(&item);
-                    sha3.finalize(&mut result);
+                    let mut keccak = Keccak::v256();
+                    keccak.update(&data);
+                    keccak.finalize(&mut result);
 
                     let mut hex_result = String::with_capacity(result.len() * 2);
                     for byte in &result {
@@ -214,41 +229,38 @@ impl<'a> Vm<'a> {
                     self.stack.push(hex_result)?;
                 }
                 InstructionType::POP => {
-                    build_initials()?.downcast::<u128>().unwrap();
+                    build_initials()?.downcast::<Bytes32>().unwrap();
                 }
                 InstructionType::MLOAD => {
-                    let item_1 = *build_initials()?.downcast::<u128>().unwrap();
+                    let item_1 = *build_initials()?.downcast::<Bytes32>().unwrap();
 
                     let result;
                     unsafe {
-                        result = self.memory.mload(item_1 as usize);
+                        result = self.memory.mload(item_1);
                     }
-                    let result: String = from_u8_32(result);
+                    let result: String = result.try_into()?;
 
                     self.stack.push(result)?;
                 }
                 InstructionType::MSTORE => unsafe {
-                    let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
 
-                    self.memory.mstore(item_1 as usize, to_u8_32(item_2));
+                    self.memory.mstore(item_1, item_2);
                 },
                 InstructionType::SLOAD => {
-                    let item_1 = *build_initials()?.downcast::<u128>().unwrap();
+                    let item_1 = *build_initials()?.downcast::<Bytes32>().unwrap();
 
-                    let result = self.storage.sload(to_u8_32(item_1)).unwrap();
-                    let result: String = from_u8_32(*result);
+                    let result = self.storage.sload(item_1).unwrap();
+                    let result: String = result.clone().to_string();
 
                     self.stack.push(result)?;
                 }
                 InstructionType::SSTORE => {
-                    // let (item_1, item_2) = *build_initials()?.downcast::<(u128, u128)>().unwrap();
-                    // TODO: solve this wrong conversion to to_u8_32
+                    let (item_1, item_2) =
+                        *build_initials()?.downcast::<(Bytes32, Bytes32)>().unwrap();
 
-                    let (_index_1, item_1) = &self.stack.pop()?;
-
-                    let (_index_2, item_2) = &self.stack.pop()?;
-
-                    self.storage.sstore(to_u8_32(item_1), to_u8_32(item_2));
+                    self.storage.sstore(item_1, item_2);
                 }
                 InstructionType::PUSH(size) => {
                     if size > 32 {
@@ -303,7 +315,7 @@ impl<'a> Vm<'a> {
     fn pop_first_item(
         &mut self,
         instruction: InstructionType,
-    ) -> Result<(usize, u128), Box<dyn Error>> {
+    ) -> Result<(usize, Bytes32), Box<dyn Error>> {
         if self.stack.is_empty() {
             return Err(Box::new(VmError::ShallowStack(Box::leak(Box::new(
                 instruction,
@@ -312,15 +324,13 @@ impl<'a> Vm<'a> {
 
         let (index, item) = &self.stack.pop()?;
 
-        let item = u128::from_str_radix(item, 16)?;
-
-        Ok((*index, item))
+        Ok((*index, Bytes32::from_str(item.as_str())?))
     }
 
     fn pop_first_two_items(
         &mut self,
         instruction: InstructionType,
-    ) -> Result<([usize; 2], [u128; 2]), Box<dyn Error>> {
+    ) -> Result<([usize; 2], [Bytes32; 2]), Box<dyn Error>> {
         if self.stack.length() < 2 {
             return Err(Box::new(VmError::ShallowStack(Box::leak(Box::new(
                 instruction,
@@ -328,12 +338,12 @@ impl<'a> Vm<'a> {
         }
 
         let (index_1, item_1) = &self.stack.pop()?;
-        let item_1 = u128::from_str_radix(item_1, 16)?;
-
         let (index_2, item_2) = &self.stack.pop()?;
-        let item_2 = u128::from_str_radix(item_2, 16)?;
 
-        Ok(([*index_1, *index_2], [item_1, item_2]))
+        Ok((
+            [*index_1, *index_2],
+            [Bytes32::from_str(item_1)?, Bytes32::from_str(item_2)?],
+        ))
     }
 }
 
@@ -549,7 +559,7 @@ mod tests {
         let mut vm = create_vm(&bytecode)?;
         vm.run()?;
 
-        assert_eq!(vm.stack.peek().unwrap(), "ffffffffffffffffffffffffffffffff");
+        assert_eq!(vm.stack.peek().unwrap(), "1");
 
         Ok(())
     }
@@ -573,13 +583,11 @@ mod tests {
         // NOTE: keccaks word "hello"
         // result must be 1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8
         // and found by using the command `cast keccak hello`
-        let data = "hello"
-            .as_bytes()
-            .iter()
-            .map(|x| format!("{:02x}", x))
-            .collect::<String>();
 
-        let bytecode = "64".to_string() + &data + "20";
+        // hello in hex string
+        let data = "68656c6c6f";
+
+        let bytecode = format!("64{data}20");
         let mut vm = create_vm(&bytecode)?;
 
         vm.run()?;
@@ -617,10 +625,10 @@ mod tests {
 
         let data;
         unsafe {
-            data = vm.memory.mload(u128::from_str_radix("80", 16)? as usize);
+            data = vm.memory.mload("80".parse::<Bytes32>()?);
         }
 
-        let data: u128 = from_u8_32(data);
+        let data: u128 = data.try_into()?;
 
         assert_eq!(vm.stack.is_empty(), true);
         assert_eq!(data, 32);
@@ -631,21 +639,17 @@ mod tests {
     #[test]
     fn it_runs_sstore_and_sload_opcodes() -> Result<(), Box<dyn Error>> {
         // NOTE: saves word "hello" in the slot of 1
-        let data = b"hello" as &[u8];
-        let data = to_u8_32(data);
-        let data: String = from_u8_32(data);
 
-        let bytecode = "7f".to_string() + &data + "600155";
+        // hello in hex string
+        let data = "68656c6c6f";
+        let bytecode = format!("64{data}600155");
+
         let mut vm = create_vm(&bytecode)?;
-
         vm.run()?;
 
-        // TODO: Find a way to solve this
-        let _data = vm.storage.sload(to_u8_32(&"01".to_string())).unwrap();
-        // let data: String = from_u8_32(data.clone());
+        let result = vm.storage.sload("01".parse::<Bytes32>()?);
 
-        assert_eq!(vm.stack.is_empty(), true);
-        // assert_eq!(data, "68656c6c6f");
+        assert_eq!(data, result.unwrap().parse_and_trim()?);
 
         Ok(())
     }
