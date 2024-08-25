@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+use crate::utils::bytes32::Bytes32;
+
 #[derive(Default)]
 pub struct Storage {
-    storage: HashMap<[u8; 32], [u8; 32]>,
+    storage: HashMap<Bytes32, Bytes32>,
 }
 
 impl Storage {
@@ -12,11 +14,11 @@ impl Storage {
         }
     }
 
-    pub fn sstore(&mut self, slot: [u8; 32], value: [u8; 32]) {
+    pub fn sstore(&mut self, slot: Bytes32, value: Bytes32) {
         self.storage.insert(slot, value);
     }
 
-    pub fn sload(&self, slot: [u8; 32]) -> Option<&[u8; 32]> {
+    pub fn sload(&self, slot: Bytes32) -> Option<&Bytes32> {
         self.storage.get(&slot)
     }
 
@@ -31,7 +33,7 @@ impl Storage {
 
 #[cfg(test)]
 mod tests {
-    use crate::utils;
+    use std::error::Error;
 
     use super::*;
 
@@ -44,15 +46,17 @@ mod tests {
     }
 
     #[test]
-    fn it_stores_and_loads_data() {
+    fn it_stores_and_loads_data() -> Result<(), Box<dyn Error>> {
         let mut storage = Storage::new();
 
-        let slot = utils::bytes::to_u8_32(1);
-        let value = utils::bytes::to_u8_32("hello".as_bytes());
+        let slot = Bytes32::from(1);
+        let value = "68656c6c6f".parse::<Bytes32>()?;
 
         storage.sstore(slot, value);
 
         assert_eq!(storage.sload(slot), Some(value).as_ref());
+
+        Ok(())
     }
 
     #[test]
