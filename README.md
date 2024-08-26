@@ -11,6 +11,10 @@ Cubipods is a minimal Ethereum Virtual Machine (EVM) written in Rust. This proje
 - **Bytecode Execution**: Runs user-provided bytecode, processing EVM opcodes.
 - **Verbose Output**: Provides detailed output, including execution history and the final state of the stack, memory, and storage.
 
+## Basics
+
+![Basics](https://raw.githubusercontent.com/icanvardar/cubipods/main/assets/app-basics.png)
+
 ## Supported Instructions
 
 Cubipods currently supports the following EVM opcodes:
