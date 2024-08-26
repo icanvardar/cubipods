@@ -2,6 +2,12 @@
 name = "cubipods"
 version = "0.1.0"
 edition = "2021"
+authors = ["Can Vardar <https://github.com/icanvardar>"]
+description = "A minimal EVM implemented in Rust."
+readme = "./README.md"
+license = "MIT"
+license-file = "./LICENSE"
+keywords = ["cubipods", "evm", "ethereum", "stack", "memory", "storage"]
 
 [dependencies]
 clap = { version = "4.5.16", features = ["derive"] }
