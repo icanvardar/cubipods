@@ -1,5 +1,6 @@
 use crate::utils::bytes32::Bytes32;
 
+#[derive(Debug)]
 pub struct Memory {
     pub heap: Vec<u8>,
 }

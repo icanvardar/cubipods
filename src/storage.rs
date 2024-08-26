@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::utils::bytes32::Bytes32;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Storage {
     storage: HashMap<Bytes32, Bytes32>,
 }
