@@ -15,7 +15,7 @@ use crate::{
     Lexer,
 };
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Vm<'a> {
     pub stack: Stack<String>,
     pub lexer: Lexer<'a>,
