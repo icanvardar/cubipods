@@ -5,7 +5,6 @@ edition = "2021"
 authors = ["Can Vardar <https://github.com/icanvardar>"]
 description = "A minimal EVM implemented in Rust."
 readme = "./README.md"
-license = "MIT"
 license-file = "./LICENSE"
 keywords = ["cubipods", "evm", "ethereum", "stack", "memory", "storage"]
 
