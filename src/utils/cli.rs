@@ -44,7 +44,7 @@ mod tests {
         vm.run()?;
 
         assert_eq!(vm.stack.is_empty(), false);
-        assert_eq!(vm.stack.length(), 4);
+        assert_eq!(vm.stack.length, 4);
         assert_eq!(vm.stack.peek().unwrap(), "0101");
         assert_eq!(args.verbose, false);
 

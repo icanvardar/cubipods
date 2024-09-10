@@ -92,16 +92,18 @@ impl<'a> Vm<'a> {
                                     index as u16,
                                 ))?;
                         } else {
-                            let ([index_1, index_2], [item_1, item_2]) =
-                                self.stack.swap(size as usize)?;
+                            unsafe {
+                                let ([index_1, index_2], [item_1, item_2]) =
+                                    self.stack.swap(size as usize)?;
 
-                            self.history.save_on_event(Component::build_stack(
-                                instruction.clone(),
-                                item_1.parse::<Bytes32>()?,
-                                index_1 as u16,
-                                item_2.parse::<Bytes32>()?,
-                                index_2 as u16,
-                            ))?;
+                                self.history.save_on_event(Component::build_stack(
+                                    instruction.clone(),
+                                    item_1.parse::<Bytes32>()?,
+                                    index_1 as u16,
+                                    item_2.parse::<Bytes32>()?,
+                                    index_2 as u16,
+                                ))?;
+                            }
                         }
 
                         Ok(Box::new(0))
@@ -364,7 +366,7 @@ impl<'a> Vm<'a> {
         &mut self,
         instruction: InstructionType,
     ) -> Result<([usize; 2], [Bytes32; 2]), Box<dyn Error>> {
-        if self.stack.length() < 2 {
+        if self.stack.length < 2 {
             return Err(Box::new(VmError::ShallowStack(Box::leak(Box::new(
                 instruction,
             )))));
@@ -618,7 +620,7 @@ mod tests {
         vm.run()?;
 
         assert_eq!(vm.stack.peek().unwrap(), "ff");
-        assert_eq!(vm.stack.length(), 1);
+        assert_eq!(vm.stack.length, 1);
 
         Ok(())
     }
@@ -641,7 +643,7 @@ mod tests {
             vm.stack.peek().unwrap(),
             "1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8"
         );
-        assert_eq!(vm.stack.length(), 1);
+        assert_eq!(vm.stack.length, 1);
 
         Ok(())
     }
