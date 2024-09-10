@@ -53,6 +53,8 @@ pub enum StackError {
     StackOverflow,
     StackUnderflow,
     StackSizeExceeded,
+    StackIsEmpty,
+    WrongIndex,
 }
 
 impl Display for StackError {
@@ -66,6 +68,12 @@ impl Display for StackError {
             }
             StackError::StackSizeExceeded => {
                 write!(f, "The given index is out of stack size.")
+            }
+            StackError::StackIsEmpty => {
+                write!(f, "Stack is empty.")
+            }
+            StackError::WrongIndex => {
+                write!(f, "Given index is wrong.")
             }
         }
     }
